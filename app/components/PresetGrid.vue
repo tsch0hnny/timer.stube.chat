@@ -51,7 +51,7 @@ const minutesLabel = (ms: number) => {
   top: 0;
   left: 0;
   right: 0;
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
   display: flex;
   flex-direction: column;
   padding:
@@ -60,6 +60,10 @@ const minutesLabel = (ms: number) => {
     calc(env(safe-area-inset-bottom) + 0.25rem)
     calc(env(safe-area-inset-left) + 0.75rem);
   background: var(--bg);
+}
+/* The top row of tiles sat in the dimmed band below the notch on the iPhone (--notch-dim). */
+@media (display-mode: standalone) and (orientation: portrait) {
+  .presets { padding-top: calc(env(safe-area-inset-top) + 0.75rem + var(--notch-dim)); }
 }
 .grid {
   flex: 1;

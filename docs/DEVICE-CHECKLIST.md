@@ -29,8 +29,11 @@ alongside other work).
 2. **Version.** Tap the small version label at the bottom right five times to open the debug
    overlay. **Version = the candidate you were told? Service worker "activated"?** Close it, swipe the
    app away, open it again, and check the overlay once more. **"controlled=true" now? Does the
-   "stage" row read 390×844 at 0,0 (the whole screen)?**
-3. **Presets.** **Are all 12 tiles readable, without anything cut off?** Tap 15:00. The landscape
+   "stage" row read 390×844 at 0,0 (the whole screen)?** (e625305 read 390×797: iOS gave the page a
+   viewport 47 px short. The "units" row shows what iOS reports and the height the app now uses
+   instead, "--app-h 844px".)
+3. **Presets.** **Are all 12 tiles readable, without anything cut off, and is the top row fully
+   bright (below the dimmed band at the notch)?** Tap 15:00. The landscape
    timer opens paused, with the controls showing. **Is there no amber pill, or does it go away
    when you tap?** (No pill means the screen-on lock is held. iOS sometimes refuses the first tap
    after opening; the next one works.)
@@ -38,8 +41,11 @@ alongside other work).
    - Tap play. The controls stay for about 5 s, then fade, and only the digits remain.
    - A single tap shows "Hold to show controls". A long press brings the controls back. A tap next
      to them hides them.
-   - Tap +1 and −1 and watch the change. Hold + until the strip appears, slide to 5 and release.
-     Both buttons now read +5 / −5.
+   - Tap +1 and −1 and watch the change. Hold + until the strip appears above the button, slide
+     up to 5 and release. Both buttons now read +5 / −5.
+   - Hold +5 again and pick 15, then hold +15 and pick 1. **The strip opens above the button and
+     stays fully on screen every time** (on e625305 it hung off the screen from 5 upwards).
+     Releasing anywhere off the strip keeps the step. Set it back to 1.
    - Tap ✕ while running: "End timer?" appears and disappears again after 3 s.
    - **Does everything respond on the first tap? Does the step strip work?**
 5. **Zero and overtime.** Step down to about 00:20 (−5 a few times, then −1), and wait. At zero:

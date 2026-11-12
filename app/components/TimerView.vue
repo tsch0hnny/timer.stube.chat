@@ -199,14 +199,14 @@ const display = timer.display
 
 <style scoped>
 .stage {
-  /* Not inset: 0. In the iOS home-screen app a fixed inset: 0 box is only 797 px tall on a
-     844 px screen (measured on the iPhone 13 Pro): 47 px short at the home-bar end. 100dvh is
-     the full screen there and the visible area in a Safari tab. */
+  /* In the iOS home-screen app the viewport (and so inset: 0 and 100dvh) can stop 47 px short of
+     the screen at the home-bar end; --app-h is the full screen there (plugins/app-height.client.ts).
+     Elsewhere 100dvh: the visible area in a Safari tab and in Chrome. */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
   background: var(--bg);
   container-type: size;
   overflow: hidden;
@@ -233,11 +233,10 @@ const display = timer.display
   transform: translateY(100cqh) rotate(-90deg);
   padding: env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom);
 }
-/* iOS dims a band along the notch edge in the home-screen app, about 85 px deep: 38 px past the
-   safe area (measured on the iPhone 13 Pro). The digits clear it; the corner controls on that
-   side move further in. */
-.stage[data-rot='cw'] { --notch-left: 2.5rem; }
-.stage[data-rot='ccw'] { --notch-right: 2.5rem; }
+/* The digits clear the dimmed band along the notch edge (--notch-dim in main.css); the corner
+   controls on that side move further in. */
+.stage[data-rot='cw'] { --notch-left: var(--notch-dim); }
+.stage[data-rot='ccw'] { --notch-right: var(--notch-dim); }
 .safe {
   --play-size: 5rem;
   --step-size: 3.75rem;

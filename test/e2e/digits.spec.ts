@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { MIN, expectTime, longPress, openPreset } from './helpers'
+import { MIN, expectTime, longPress, openPreset, turnToLandscape } from './helpers'
 
 type Box = { x: number; y: number; width: number; height: number }
 const round = (b: Box) => ({ x: Math.round(b.x * 100) / 100, y: Math.round(b.y * 100) / 100, w: Math.round(b.width * 100) / 100, h: Math.round(b.height * 100) / 100 })
@@ -109,10 +109,6 @@ async function expectLineOnScreen(page: Page) {
       .filter(({ b }) => b.left < 0 || b.top < 0 || b.right > innerWidth || b.bottom > innerHeight)
       .map(({ ch, b }) => `${ch} ${Math.round(b.left)},${Math.round(b.top)}–${Math.round(b.right)},${Math.round(b.bottom)}`))
   expect(outside, `cells outside ${await page.evaluate(() => `${innerWidth}×${innerHeight}`)}`).toEqual([])
-}
-async function turnToLandscape(page: Page) {
-  const v = page.viewportSize()!
-  await page.setViewportSize({ width: Math.max(v.width, v.height), height: Math.min(v.width, v.height) })
 }
 
 // Digits are tabular and the hour has one digit (the clamp is 9:59:59), so overtime is the widest

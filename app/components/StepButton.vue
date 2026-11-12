@@ -16,9 +16,11 @@ const open = ref(false)
 const highlight = ref<number | null>(null)
 let holdTimer: ReturnType<typeof setTimeout> | undefined
 
-// Top to bottom: 15, 10, 5, 1 ("drag up for more"). The strip is offset so the current step sits under the finger.
+// Top to bottom: 15, 10, 5, 1 ("slide up for more"). The strip opens above the button, never around
+// the finger: the buttons sit near the bottom edge, and on the iPhone a strip centred on the current
+// step hung off the screen from 5 upwards. The current step stays highlighted until the finger
+// reaches another choice, so releasing anywhere else keeps it.
 const choices = [...STEP_CHOICES].reverse()
-const offsetIndex = computed(() => Math.max(0, choices.indexOf(props.step as StepMinutes)))
 const label = computed(() => `${props.sign > 0 ? '+' : MINUS}${props.step}`)
 const aria = computed(() => `${props.sign > 0 ? 'Add' : 'Subtract'} ${props.step} minute${props.step === 1 ? '' : 's'}${props.picker ? '. Hold to change the step.' : ''}`)
 
@@ -37,12 +39,12 @@ function onMove(e: PointerEvent) {
   if (!open.value) return
   // elementFromPoint respects the CSS rotation, so "up/down" works in the rotated landscape view.
   const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>('[data-step-choice]')
-  highlight.value = el ? Number(el.dataset.stepChoice) : null // off the strip sideways = cancel
+  highlight.value = el ? Number(el.dataset.stepChoice) : props.step
 }
 function onUp() {
   clearTimeout(holdTimer)
   if (open.value) {
-    if (highlight.value !== null) emit('pick', highlight.value as StepMinutes)
+    if (highlight.value !== null && highlight.value !== props.step) emit('pick', highlight.value as StepMinutes)
     highlight.value = null
     setOpen(false)
     return
@@ -83,7 +85,6 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
       <div
         v-if="open"
         class="strip glass"
-        :style="{ '--offset': offsetIndex }"
         role="listbox"
         :aria-label="`Step size, currently ${step} minutes`"
         data-testid="step-strip"
@@ -121,9 +122,10 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
   --choice-h: var(--step-size);
   position: absolute;
   left: 50%;
+  bottom: calc(100% + 0.5rem);
   width: calc(var(--step-size) * 1.15);
-  top: calc(50% - (var(--offset) + 0.5) * var(--choice-h));
   transform: translateX(-50%);
+  transform-origin: 50% 100%; /* grows out of the button */
   border-radius: calc(var(--step-size) / 2);
   overflow: hidden;
   z-index: 3;

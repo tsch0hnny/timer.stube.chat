@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { MIN, START, digits, expectTime, longPress, openPreset, settle, tapStage } from './helpers'
+import { MIN, START, digits, expectOnScreen, expectTime, longPress, openPreset, settle, tapStage, turnToLandscape } from './helpers'
 
 test.describe('countdown on the real build, driven by a fake clock', () => {
   test('a full 60:00 runs to zero and crosses into overtime in red', async ({ page }) => {
@@ -92,6 +92,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.mouse.down()
     await page.clock.runFor(500)
     await expect(page.getByTestId('step-strip')).toBeVisible()
+    await expectOnScreen(page, 'step-strip') // also waits for it to finish growing before measuring
     const ten = (await page.getByTestId('step-choice-10').boundingBox())!
     await page.mouse.move(ten.x + ten.width / 2, ten.y + ten.height / 2, { steps: 4 })
     await page.mouse.up()
@@ -104,6 +105,45 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expectTime(page, '55:00 left')
     await page.reload()
     await expect(page.getByTestId('step-plus')).toHaveText('+10')
+  })
+
+  // On the iPhone the strip opened from 15 hung below the button and off the screen (device check
+  // of e625305): the + button sits near the bottom edge. Each pick opens the strip from the last step.
+  test('the step strip opens fully on screen from every step, rotated and in a landscape viewport', async ({ page }) => {
+    await openPreset(page, 45)
+    const plus = page.getByTestId('step-plus')
+    const pick = async (to: number) => {
+      const b = (await plus.boundingBox())!
+      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+      await page.mouse.down()
+      await page.clock.runFor(500)
+      await expect(page.getByTestId('step-strip')).toBeVisible()
+      await expectOnScreen(page, 'step-strip')
+      const c = (await page.getByTestId(`step-choice-${to}`).boundingBox())!
+      await page.mouse.move(c.x + c.width / 2, c.y + c.height / 2, { steps: 4 })
+      await page.mouse.up()
+      await settle(page)
+      await expect(plus).toHaveText(`+${to}`)
+    }
+    for (const to of [5, 10, 15, 1]) await pick(to)
+    await turnToLandscape(page)
+    for (const to of [15, 10, 5, 1]) await pick(to)
+    await expectTime(page, '45:00 left') // picking never steps the time
+  })
+
+  test('holding + and releasing without sliding keeps the step', async ({ page }) => {
+    await openPreset(page, 45)
+    const plus = page.getByTestId('step-plus')
+    const b = (await plus.boundingBox())!
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+    await page.mouse.down()
+    await page.clock.runFor(500)
+    await expect(page.getByTestId('step-strip')).toBeVisible()
+    await page.mouse.move(b.x + b.width / 2 + 3, b.y + b.height / 2 + 2) // a resting finger wobbles
+    await page.mouse.up()
+    await settle(page)
+    await expect(plus).toHaveText('+1')
+    await expectTime(page, '45:00 left')
   })
 
   test('controls: shown while paused, fade 5 s after play, tap shows the hint, long press brings them back', async ({ page }) => {
@@ -165,7 +205,23 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect(page.getByTestId('debug-wake-lock')).toContainText('held')
     const vp = page.viewportSize()!
     await expect(page.getByTestId('debug-stage')).toContainText(`${vp.width}×${vp.height} at 0,0`) // the stage fills the screen
+    await expect(page.getByTestId('debug-units')).toContainText(`vh/dvh/svh/lvh ${vp.height} / ${vp.height} / ${vp.height} / ${vp.height} · --app-h unset (100dvh)`)
     await page.getByTestId('debug-close').click()
     await expect(page.getByTestId('debug')).toHaveCount(0)
+  })
+
+  // Only the wiring can be tested here: emulated browsers have no short iOS viewport, so lvh equals
+  // the viewport. The 797 → 844 case is covered by test/unit/appHeight.test.ts and the device.
+  test('in the iOS home-screen app the views take --app-h; elsewhere 100dvh', async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(navigator, 'standalone', { configurable: true, value: true }))
+    await openPreset(page, 15)
+    const vp = page.viewportSize()!
+    const measure = () => page.evaluate(() => ({
+      appH: document.documentElement.style.getPropertyValue('--app-h'),
+      stage: Math.round(document.querySelector('[data-testid="timer-view"]')!.getBoundingClientRect().height),
+    }))
+    expect(await measure()).toEqual({ appH: `${vp.height}px`, stage: vp.height })
+    await page.setViewportSize({ width: vp.height, height: vp.width })
+    await expect.poll(measure).toEqual({ appH: `${vp.width}px`, stage: vp.width })
   })
 })

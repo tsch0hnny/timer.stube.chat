@@ -14,6 +14,7 @@ const visibility = ref(document.visibilityState)
 const sw = ref<{ controlled: boolean; state: string; scope: string }>({ controlled: false, state: '?', scope: '?' })
 const insets = ref('')
 const stage = ref('')
+const units = ref('')
 const copied = ref('')
 const probe = ref<HTMLElement | null>(null)
 
@@ -55,6 +56,8 @@ async function refresh() {
   const r = document.querySelector('[data-testid="timer-view"], [data-testid="presets"]')?.getBoundingClientRect()
   const de = document.documentElement
   stage.value = r ? `${Math.round(r.width)}×${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)} · layout viewport ${de.clientWidth}×${de.clientHeight}` : '–'
+  const hs = [...document.querySelectorAll<HTMLElement>('.unit-probe')].map((el) => el.offsetHeight).join(' / ')
+  units.value = `vh/dvh/svh/lvh ${hs} · --app-h ${de.style.getPropertyValue('--app-h') || 'unset (100dvh)'}`
 }
 let interval: ReturnType<typeof setInterval> | undefined
 onMounted(() => { void refresh(); interval = setInterval(refresh, 1000); document.addEventListener('visibilitychange', refresh) })
@@ -69,6 +72,7 @@ const rows = computed((): Array<[string, string]> => [
   ['display-mode', `${displayMode()} · standalone=${String((navigator as Navigator & { standalone?: boolean }).standalone)}`],
   ['viewport', `${innerWidth}×${innerHeight} · screen ${screen.width}×${screen.height} · safe t/r/b/l ${insets.value}`],
   ['stage', stage.value],
+  ['units', units.value],
   ['service worker', `${sw.value.state} · controlled=${sw.value.controlled} · update ready=${!!pwa?.needRefresh}`],
   ['online', String(navigator.onLine)],
   ['storage', timer.storageError.value ?? 'ok'],
@@ -104,6 +108,7 @@ async function copy() {
       <dd data-testid="debug-stored"><code>{{ stored.raw }}</code><pre v-if="stored.decoded">{{ stored.decoded }}</pre></dd>
     </dl>
     <div ref="probe" class="probe" aria-hidden="true" />
+    <div v-for="u in ['vh', 'dvh', 'svh', 'lvh']" :key="u" class="unit-probe" :style="{ height: `100${u}` }" aria-hidden="true" />
     <h3>Events</h3>
     <ol class="events">
       <li v-for="e in events.slice(0, 120)" :key="e.t + e.type + e.detail"><time>{{ hms(e.t) }}</time> <b>{{ e.type }}</b> {{ e.detail }}</li>
@@ -133,6 +138,7 @@ dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 0.75rem;
 dt { color: var(--dim); }
 dd { margin: 0; overflow-wrap: anywhere; }
 pre, code { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; }
+.unit-probe { position: fixed; top: 0; left: 0; width: 0; visibility: hidden; pointer-events: none; }
 .probe { position: absolute; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .events { margin: 0; padding: 0; list-style: none; }
 .events time { color: var(--dim); }

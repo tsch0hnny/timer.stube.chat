@@ -50,6 +50,29 @@ export async function tapStage(page: Page) {
   const box = (await page.getByTestId('digits').boundingBox())!
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
 }
+/**
+ * The element lies wholly inside the viewport once its CSS transitions have finished (they run in
+ * real time, not on the fake clock). getBoundingClientRect includes transforms, so this also holds
+ * for the CSS-rotated stage.
+ */
+export async function expectOnScreen(page: Page, testId: string) {
+  const sel = `[data-testid="${testId}"]`
+  await expect.poll(() => page.evaluate((s) => document.querySelector(s)!
+    .getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length, sel)).toBe(0)
+  const box = await page.evaluate((s) => {
+    const b = document.querySelector(s)!.getBoundingClientRect()
+    return { left: Math.round(b.left), top: Math.round(b.top), right: Math.round(b.right), bottom: Math.round(b.bottom), vw: innerWidth, vh: innerHeight }
+  }, sel)
+  expect(box.left >= 0 && box.top >= 0 && box.right <= box.vw && box.bottom <= box.vh, `${testId} ${JSON.stringify(box)}`).toBe(true)
+}
+
+/** Turns the viewport to landscape and waits until the timer view has dropped its CSS rotation. */
+export async function turnToLandscape(page: Page) {
+  const v = page.viewportSize()!
+  await page.setViewportSize({ width: Math.max(v.width, v.height), height: Math.min(v.width, v.height) })
+  await expect(page.getByTestId('timer-view')).toHaveAttribute('data-rot', 'none')
+}
+
 /** Lets Vue's leave transitions finish (they wait on rAF and a timeout, both on the paused fake clock). */
 export async function settle(page: Page, ms = 400) {
   await page.clock.runFor(ms)

@@ -10,6 +10,9 @@
   --ok: #30d158;
   --tile: #1c1c1e;
   --tile-pressed: #2c2c2e;
+  /* iOS dims a band along the notch edge in the home-screen app, about 85 px deep: 38 px past the
+     safe area (measured on the iPhone 13 Pro). Content on that edge moves this much further in. */
+  --notch-dim: 2.5rem;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body {
