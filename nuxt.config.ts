@@ -10,6 +10,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   telemetry: false,
   modules: ['@vite-pwa/nuxt'],
+  css: ['~/assets/main.css'],
 
   runtimeConfig: {
     public: { appVersion: APP_VERSION },

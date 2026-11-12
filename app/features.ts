@@ -1,0 +1,22 @@
+/**
+ * Phase 1 switches. If something is broken on the iPhone on Friday evening, cut in this order,
+ * first to go first. Never cut: correct time, digits that don't jump, the screen staying on,
+ * surviving reload and lock.
+ */
+export const FEATURES = {
+  /** 1st to cut: glass (blur + Chromium refraction) → plain translucent controls. */
+  liquidGlass: true,
+  /** 2nd to cut: hold-to-pick step strip → fixed ±1 and ±5 buttons. */
+  stepPicker: true,
+  /** 3rd to cut: the shake at zero (the red and the minus sign stay). */
+  shake: true,
+} as const
+
+/** Which way the landscape timer is rotated inside a portrait viewport. Set from the device spike. */
+export const LANDSCAPE_ROTATION: 'cw' | 'ccw' = 'cw'
+
+/** Reserve the minus sign's width from the start, so the digit size never changes at zero. */
+export const RESERVE_MINUS_CELL = true
+
+/** Fonts the timer can use; phase 1 ships one. The digit-stability test runs for each. */
+export const TIMER_FONTS = [{ id: 'system', family: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', weight: 700 }] as const
