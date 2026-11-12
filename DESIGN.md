@@ -1,27 +1,71 @@
 ---
 name: StageTimer
-description: A set countdown for a phone on stage, read at a glance from 1–2 m.
+description: A set countdown for a phone on stage, read at a glance from 1–2 m; the iOS Clock timer, executed impeccably.
 colors:
   stage-black: "#000000"
   digit-white: "#ffffff"
   overtime-red: "#ff453a"
   caution-amber: "#ffd60a"
   end-red: "#d70015"
-  dim-grey: "#8e8e93"
-  tile-grey: "#1c1c1e"
-  tile-grey-pressed: "#2c2c2e"
+  start-green: "#30d158"
+  start-green-fill: "#0a2a12"
+  start-green-disabled: "rgb(48 209 88 / 0.38)"
+  secondary-grey: "#8e8e93"
+  button-grey: "#333336"
+  menu-grey: "#2c2c2e"
+  cell-grey: "#1c1c1e"
+  separator-grey: "#38383a"
+  chevron-grey: "#5a5a5e"
+  quiet-fill: "rgb(118 118 128 / 0.24)"
+  menu-highlight: "rgb(255 255 255 / 0.16)"
+  label-disabled: "rgb(255 255 255 / 0.32)"
+  debug-scrim: "rgb(0 0 0 / 0.94)"
+  debug-border: "#48484a"
 typography:
   digits:
     fontFamily: "system-ui, -apple-system, Roboto, sans-serif"
     fontWeight: 700
     lineHeight: 1
     fontFeature: "'tnum' 1"
-  step:
+  preset-time:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "2.5rem"
+    fontWeight: 300
+    lineHeight: 1.08
+    letterSpacing: "-0.01em"
+    fontFeature: "'tnum' 1"
+  heading:
     fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "1.375rem"
     fontWeight: 700
+    lineHeight: 1.2
+  wheel-number:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "1.4375rem"
+    fontWeight: 400
     lineHeight: 1
     fontFeature: "'tnum' 1"
+  wheel-unit:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "1.0625rem"
+    fontWeight: 600
+    lineHeight: 1
+  play-label:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "1.1875rem"
+    fontWeight: 400
+    lineHeight: 1
+  button-label:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "1.0625rem"
+    fontWeight: 400
+    lineHeight: 1
+    fontFeature: "'tnum' 1"
+  body:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "1.0625rem"
+    fontWeight: 400
+    lineHeight: 1.2
   notice:
     fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "1.25rem"
@@ -37,16 +81,22 @@ typography:
     fontSize: "1.125rem"
     fontWeight: 700
     lineHeight: 1
+  secondary:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 400
+    lineHeight: 1.3
   update:
     fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "0.9375rem"
     fontWeight: 600
     lineHeight: 1
   meta:
-    fontFamily: "ui-monospace, Menlo, monospace"
+    fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1
+    fontFeature: "'tnum' 1"
   debug:
     fontFamily: "ui-monospace, Menlo, monospace"
     fontSize: "0.8125rem"
@@ -58,178 +108,283 @@ typography:
     fontWeight: 700
     lineHeight: 1.4
 rounded:
-  tile: "1.25rem"
-  debug-button: "0.6rem"
-  pill: "999px"
-  circle: "50%"
+  round: "50%"
+  capsule: "999px"
+  cell: "0.75rem"
+  menu: "0.875rem"
+  band: "8px"
+  debug: "0.6rem"
 spacing:
-  tile-gap: "0.625rem"
-  edge: "0.75rem"
-  control-gap: "1.5rem"
+  hairline: "0.5px"
+  xs: "0.25rem"
+  sm: "0.5rem"
+  md: "0.75rem"
+  lg: "1rem"
+  gutter: "1.25rem"
+  row-gap: "1.75rem"
+  section: "2rem"
+  notch-dim: "2.5rem"
 components:
-  preset-tile:
-    backgroundColor: "{colors.tile-grey}"
+  button-round:
+    backgroundColor: "{colors.button-grey}"
     textColor: "{colors.digit-white}"
-    rounded: "{rounded.tile}"
-  preset-tile-pressed:
-    backgroundColor: "{colors.tile-grey-pressed}"
-  play-button:
-    backgroundColor: "rgb(255 255 255 / 0.1)"
-    textColor: "{colors.digit-white}"
-    rounded: "{rounded.circle}"
+    typography: "{typography.button-label}"
+    rounded: "{rounded.round}"
     size: "5rem"
-  step-button:
-    backgroundColor: "rgb(255 255 255 / 0.1)"
+  button-round-disabled:
+    backgroundColor: "{colors.button-grey}"
+    textColor: "{colors.label-disabled}"
+    rounded: "{rounded.round}"
+  button-start:
+    backgroundColor: "{colors.start-green-fill}"
+    textColor: "{colors.start-green}"
+    typography: "{typography.play-label}"
+    rounded: "{rounded.round}"
+    size: "5rem"
+  button-start-disabled:
+    backgroundColor: "{colors.start-green-fill}"
+    textColor: "{colors.start-green-disabled}"
+    rounded: "{rounded.round}"
+  button-round-presets:
+    backgroundColor: "{colors.button-grey}"
     textColor: "{colors.digit-white}"
-    typography: "{typography.step}"
-    rounded: "{rounded.pill}"
-    height: "3.75rem"
-    padding: "0 0.6em"
-  exit-button:
-    backgroundColor: "rgb(255 255 255 / 0.1)"
+    rounded: "{rounded.round}"
+    size: "5.25rem"
+  button-exit:
+    backgroundColor: "{colors.button-grey}"
     textColor: "{colors.digit-white}"
-    rounded: "{rounded.circle}"
+    rounded: "{rounded.round}"
     size: "3.25rem"
-  status-pill:
-    backgroundColor: "{colors.caution-amber}"
-    textColor: "{colors.stage-black}"
-    typography: "{typography.notice}"
-    rounded: "{rounded.pill}"
-    padding: "0.4em 0.9em"
-  end-button:
+  button-end:
     backgroundColor: "{colors.end-red}"
     textColor: "{colors.digit-white}"
     typography: "{typography.confirm}"
-    rounded: "{rounded.pill}"
+    rounded: "{rounded.capsule}"
     padding: "0.6rem 1.1rem"
-  step-choice-active:
-    backgroundColor: "{colors.digit-white}"
+  capsule:
+    backgroundColor: "{colors.menu-grey}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.hint}"
+    rounded: "{rounded.capsule}"
+    padding: "0.6em 1.2em"
+  pill-caution:
+    backgroundColor: "{colors.caution-amber}"
     textColor: "{colors.stage-black}"
-    typography: "{typography.step}"
+    typography: "{typography.notice}"
+    rounded: "{rounded.capsule}"
+    padding: "0.4em 0.9em"
+  grouped-cell:
+    backgroundColor: "{colors.cell-grey}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.body}"
+    rounded: "{rounded.cell}"
+    padding: "0.5rem 1rem"
+    height: "3.25rem"
+  switch-off:
+    backgroundColor: "{colors.quiet-fill}"
+    rounded: "{rounded.capsule}"
+    width: "51px"
+    height: "31px"
+  switch-on:
+    backgroundColor: "{colors.start-green}"
+    rounded: "{rounded.capsule}"
+    width: "51px"
+    height: "31px"
+  preset-row:
+    backgroundColor: "{colors.stage-black}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.preset-time}"
+    padding: "0.6rem 1.25rem"
+  preset-row-pressed:
+    backgroundColor: "{colors.cell-grey}"
+  preset-play:
+    backgroundColor: "{colors.start-green-fill}"
+    textColor: "{colors.start-green}"
+    rounded: "{rounded.round}"
+    size: "2.5rem"
+  step-menu:
+    backgroundColor: "{colors.menu-grey}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.button-label}"
+    rounded: "{rounded.menu}"
+    width: "7.5rem"
+  step-menu-choice-active:
+    backgroundColor: "{colors.menu-highlight}"
+    textColor: "{colors.digit-white}"
+    height: "3rem"
+  wheel-band:
+    backgroundColor: "{colors.quiet-fill}"
+    rounded: "{rounded.band}"
+    height: "34px"
+  update-capsule:
+    backgroundColor: "{colors.menu-grey}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.update}"
+    rounded: "{rounded.capsule}"
+    padding: "0.55rem 0.9rem"
+  version-label:
+    textColor: "{colors.secondary-grey}"
+    typography: "{typography.meta}"
+    padding: "0.5rem"
+  debug-button:
+    backgroundColor: "{colors.cell-grey}"
+    textColor: "{colors.digit-white}"
+    typography: "{typography.debug}"
+    rounded: "{rounded.debug}"
+    padding: "0.5rem 0.8rem"
 ---
 
 # Design System: StageTimer
 
 ## Overview
 
-**Creative North Star: "The Digits Are the Interface"**
+**Creative North Star: "The iOS Clock Timer, Executed Impeccably"**
 
-A single line of bold white numerals on pure black, held in fixed cells so nothing ever jumps. While the timer runs there is nothing else on screen; controls are summoned, float over the black as glass, and fade away again. The system is built for one job: read the time at an angle from 2 m under stage light, on an OLED phone lying on a synth.
+StageTimer takes the category standard on purpose. The Presets screen is Apple's countdown timer: a three-column wheel with a grey selection band, two big round tinted buttons, one grouped switch cell, and a list in the Recents format. Familiarity is the point; craft is the bar, measured against Apple Clock, Fitness/Workout and Music Now Playing. Nothing on the screen should need explaining to someone who has set a timer on an iPhone.
 
-Pure black and system-ui are owner-pinned hard rules (PRODUCT.md), not defaults to revisit. Colour is semantic and scarce: each hue means exactly one thing. The category default (rings, progress bars, labels around a small clock) is rejected.
+The one deviation is the product itself: the stage. Where Apple draws a ring, StageTimer draws one full-screen line of heavy white digits on pure black, in landscape, sized to the largest that fits legibly and built from fixed-width cells so no digit ever moves. While running, the stage shows the time and nothing else; a long press brings back the control row. At zero the line shakes once, turns red, and a minus fades in from a cell that was reserved for it all along.
+
+Surfaces are flat and opaque. The earlier liquid-glass treatment was removed with this redesign; controls are iOS fills on black, separated by tone and hairlines, never by blur or shadow. Colour carries meaning and nothing else: one hue per meaning, white for everything that is just information.
 
 **Key Characteristics:**
-- Pure #000 ground, white bold tabular digits sized to the largest width that fits.
-- Digit cells measured from the device's own font; the minus cell reserved from the start.
-- One meaning per colour: bright red = overtime, amber = needs a tap, deep red = End.
-- Glass only on floating controls; preset tiles are plain filled tap targets.
-- Silent; motion is short, and every movement has a reduced-motion variant.
+- Pure #000 ground, white system-ui type, OLED-dark under stage light.
+- Apple's round button with its double ring: grey for everything, green only for start.
+- Lists in Apple's Recents format: big light tabular time over grey words, hairline separators inset to the text.
+- One full-screen line of fixed-cell digits on the stage; nothing else while running.
+- Opaque fills only; no glass, no shadows for depth.
+- Every motion has a reduced-motion variant (fades instead of shake, scale and glide).
 
 ## Colors
 
-A black stage with white type and three signal hues, each bound to one meaning.
+A black-and-white stage with four signal colours, each owning exactly one meaning.
 
 ### Primary
-- **Digit White** (`digit-white`): the digits, icons, glass control text, focus ring (3px solid, 3px offset) and the active step choice background.
+- **Start Green** (start-green on start-green-fill): Apple's tinted start button. The stage's Start label, the Presets screen's Set-become-Start button and the green play circles in the list, and the "Start right away" switch when on. Green appears on the Presets screen only when "Start right away" is on; when it is off, the wheel's button reads "Set" in grey and the rows carry grey chevrons.
 
 ### Secondary
-- **Overtime Red** (`overtime-red`): the digits once the time is below zero. Nothing else. 6.0:1 on black.
-- **Caution Amber** (`caution-amber`, black text, 14:1): status pills that need the player's action (wake lock refused, storage failing). Deliberately not red, so under stage light it is never misread as overtime.
-
-### Tertiary
-- **End Red** (`end-red`, white text 5.4:1): the End button inside the exit confirm, and nowhere else.
+- **Overtime Red** (overtime-red): the stage digits once the countdown passes zero, and nothing else.
+- **Caution Amber** (caution-amber, black text on it): the status pill that says the app needs a tap (wake lock lost, storage unavailable). Deliberately not red, so it cannot be misread as overtime.
+- **End Red** (end-red, white text on it): the End button in the exit confirm, and nothing else.
 
 ### Neutral
-- **Stage Black** (`stage-black`): every ground. Not softened, by owner rule.
-- **Dim Grey** (`dim-grey`, 6.2:1): the version label and debug metadata.
-- **Tile Grey** (`tile-grey`) / **Tile Grey Pressed** (`tile-grey-pressed`): preset tile fill and its pressed state; also the near-opaque step strip fill (at 94%).
+- **Stage Black** (stage-black): every background, the status-bar strip, the gap inside the button ring.
+- **Digit White** (digit-white): digits, labels, icons, the switch knob, focus rings.
+- **Secondary Grey** (secondary-grey): the words under preset times, the version label, debug labels.
+- **Button Grey** (button-grey): every round button that is not start (reset, Set, Pause, ±step, exit).
+- **Menu Grey** (menu-grey): the step menu, the hint and exit-confirm capsules, the update capsule.
+- **Cell Grey** (cell-grey): the grouped "Start right away" cell and a pressed preset row.
+- **Separator Grey** (separator-grey): 0.5px hairlines between list rows and menu choices.
+- **Chevron Grey** (chevron-grey): the row chevrons when presets only set.
+- **Quiet Fill** (quiet-fill): the wheel's selection band and the off switch track.
+- **Menu Highlight** (menu-highlight): the step choice under the finger. **Label Disabled** (label-disabled): a disabled round button's label.
 
 ### Named Rules
-**The One Meaning Rule.** Each hue carries one meaning. Bright red is overtime only; deep red is End only; amber is "needs a tap" only. A new state gets a new meaning only by owner decision, never by reusing a hue.
+**The One Meaning Rule.** Green is start, red is overtime, amber is "needs a tap", deep red is End. No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.
 
-**The Pure Black Rule.** The ground is #000 on every surface, overriding any "no pure black" guidance (dark stages, OLED).
+**The No Orange Rule.** Apple's orange Pause is not used. Pause is grey, like every other non-start control.
+
+**The Pure Black Rule.** The ground is #000, overriding any "no pure black" guidance: dark stages, OLED panels, nothing glowing around the digits.
 
 ## Typography
 
 **Display Font:** system-ui (with -apple-system, Roboto, sans-serif)
-**Body Font:** the same system-ui stack
-**Label/Mono Font:** ui-monospace (with Menlo), version label and debug overlay only
+**Body Font:** system-ui (with -apple-system, sans-serif)
+**Label/Mono Font:** ui-monospace, Menlo, inside the hidden debug overlay only
 
-**Character:** One family, set heavy. The device's own UI face at weight 700–800 reads as solid mass at distance; no downloaded fonts.
+**Character:** One family, the device's own, used the way iOS uses it: heavy for the stage digits, light and large for list times, regular for controls.
 
 ### Hierarchy
-- **Digits** (700, line-height 1, tabular-nums): the timer line. In the timer view sized `min(100cqw / line-em, 92cqh)` against the digit box; on preset tiles `100cqw / 4.3` of the tile.
-- **Notice** (800, 1.25rem, 1.2): amber status pills.
-- **Hint** (700, 1.25rem, 1.2): "Hold to show controls".
-- **Step** (700, 1.375rem, 1, tabular): ±step buttons and the step strip choices.
-- **Confirm** (700, 1.125rem, 1): "End timer?" and the End button.
-- **Update** (600, 0.9375rem, 1): the "Update ready · reload" pill on the presets screen.
-- **Meta** (500, 0.75rem, monospace, dim grey): version label.
-- **Debug** (400, 0.8125rem, 1.4, monospace): the hidden debug overlay's rows, log and section labels (labels uppercase, dim grey); its title is **Debug title** (700, 1rem).
+- **Digits** (700, sized to fit the digits box, line-height 1, tabular): the stage line only. Size is the minimum of the box width divided by the line's width in em and 92% of the box height.
+- **Preset Time** (300, 2.5rem, 1.08, -0.01em, tabular): list times ("1:15:00").
+- **Wheel Number** (400, 1.4375rem, 1, tabular) with **Wheel Unit** (600, 1.0625rem): the countdown wheel.
+- **Heading** (700, 1.375rem, 1.2): the "Presets" list header.
+- **Hint** (700, 1.25rem) and **Notice** (800, 1.25rem): the hint capsule and the amber pill, legible from 2 m.
+- **Play Label** (400, 1.1875rem): Start / Pause in the stage's centre button.
+- **Button Label** (400, 1.0625rem, tabular): round buttons, step labels ("+5 min"), step menu choices (600 when highlighted).
+- **Body** (400, 1.0625rem, 1.2): the grouped switch cell.
+- **Confirm** (700, 1.125rem): "End timer?" and its End button.
+- **Secondary** (400, 0.9375rem, 1.3): the words under a preset time. **Update** (600, 0.9375rem): the update capsule.
+- **Meta** (500, 0.75rem, tabular): the version label.
+- **Debug** (0.8125rem / 1.4 monospace) and **Debug Title** (700, 1rem): the diagnostic sheet.
 
 ### Named Rules
-**The Fixed Cell Rule.** Every digit sits in a cell as wide as the widest digit 0–9, measured at runtime from the resolved font (weight 700, tabular-nums); colon and minus get their own measured cells. Cells are keyed from the right so seconds stay the same element when an hour or minus appears.
+**The Device Font Rule.** system-ui only. No downloaded fonts, no SF files, no monospace outside the debug overlay.
 
-**The Reserved Minus Rule.** The line is sized as if the minus were already present, so the digit size never changes at zero.
+**The Measured Cell Rule.** Every stage digit sits in a fixed-width cell measured from the device font at runtime (digit, colon and minus widths in em). The line is sized against its widest form with the minus cell reserved, so the font size never changes at zero and no digit ever shifts.
 
 ## Layout
 
-**Timer view.** Always landscape. When the viewport is portrait the stage is drawn with a CSS rotation (clockwise in phase 1; configurable), and the safe-area insets are remapped to the rotated sides; when the viewport is already landscape, no rotation. Inside the safe area the digit box is inset 4% top, 3% sides, and its bottom always reserves the control band (play size 5rem + 0.75rem row offset + 0.75rem), paused or running, so the digits never move when controls appear and controls never cover them. The control row is centred at the bottom: −step, play, +step with a 1.5rem gap. Exit sits top-left and the version label bottom-right, both 0.75rem from the edge. Status pills are centred at the top.
+The app is two screens, both fixed to the full screen height. In the iOS home-screen app the viewport can stop short of the screen at the home-bar end, so screens use the measured full height (`--app-h`) and fall back to 100dvh elsewhere.
 
-**Presets.** A 3×4 grid of equal tiles in portrait, 4×3 in landscape, 0.625rem gaps, 0.75rem edge padding plus safe-area insets, a slim footer for the version label.
+**Presets, portrait:** one column with a 1.25rem gutter plus safe-area insets. The wheel (7 rows of 34px) sits at the top, then the two 5.25rem round buttons pushed to the edges, the grouped switch cell, the "Presets" header (2rem above) and the full-bleed list whose rows keep the gutter as padding. The version label closes the page.
 
-**The Quiet Stage Rule.** While running, nothing renders but the digits and any status pill that reports a threat. Controls come back on long press (500 ms) and auto-hide after 5 s without touches.
+**Presets, landscape:** two columns, the wheel column (16–22rem) beside the list with a 2.5rem gap. Where the height allows (360px and up) the wheel column is sticky and only the list scrolls; below 500px tall the wheel shows 5 rows.
+
+**Stage:** always landscape, drawn by CSS rotation inside the portrait viewport, with the safe-area insets remapped to the rotated sides. The digits box leaves room for the control row whether or not it is shown, so the digits never move when controls appear. The control row (−step, Start/Pause, +step, 1.75rem apart) sits centred 0.75rem from the bottom; exit sits top-left, the version label bottom-right.
+
+### Named Rules
+**The Notch Dim Rule.** iOS dims a band about 85px deep along the notch edge in the home-screen app. Content on that edge moves a further `notch-dim` (2.5rem) inward: the top of the Presets screen in portrait, and the corner controls on the notch side of the stage.
+
+**The Quiet Stage Rule.** While running, the stage shows nothing but the digits (and an amber pill if something threatens the show). Controls return only on a long press.
 
 ## Elevation & Depth
 
-Flat black, with one material: glass, used only on controls that float over the stage (play, ±step, exit, exit confirm, hint, step strip). Depth comes from a translucent fill and a rim light, not from shadow.
-
-### Shadow Vocabulary
-- **Glass rim** (`box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06)`): every glass control, with a 1px rim stroke `rgb(255 255 255 / 0.24)`.
+Flat by construction. Depth comes from tone, not shadow: grey fills step up from black (cell-grey, menu-grey, button-grey), hairline separators divide lists and menus, and a stage-black strip the height of the status bar keeps scrolling rows out from under the status bar. The only box-shadow in the system is the round button's double ring, a 2px black gap then a 2px ring of the button's own fill, which is Apple's button outline rather than elevation.
 
 ### Named Rules
-**The Glass Recipe Rule.** Glass is a 10% white fill, `blur(20px) saturate(180%)`, a 1px 24% white rim and the inset rim light above. Pressed raises the fill to 20%. In Chromium the blur is replaced by a refraction filter plus `blur(4px)`; Safari keeps the frosted blur, and it must look right there. The cut switch falls back to a plain `rgb(58 58 60 / 0.88)` fill with no backdrop filter.
-
-**The No Outer Shadow Rule.** Nothing casts an outer shadow, glass or status pill: on #000 a shadow is invisible and only darkens the digits underneath.
+**The Opaque Fill Rule.** No glass, no backdrop blur, no drop shadows. Floating things (capsules, the step menu) are opaque menu-grey.
 
 ## Shapes
 
-Soft and round. Preset tiles have generous corners (1.25rem); every floating control is a circle (play, exit) or a full pill (step, confirm, End, hint, status pill, step strip). No hard corners on interactive elements, no cards, no dividers. The one exception is the hidden debug overlay, a diagnostic sheet that is never on stage: its Close and Copy buttons use 0.6rem corners.
+Three shapes, all Apple's: circles for buttons and play marks (50%), capsules for pills, hints, confirm and End (999px), and gently rounded rectangles for grouped cells (0.75rem), the step menu (0.875rem) and the wheel band (8px). Separators are 0.5px hairlines inset to the text on the leading side and running to the trailing edge.
 
 ## Components
 
-### Preset Tile
-Plain filled tap target. Tile grey, 1.25rem corners, no border, digits rendered with the timer's own digit component and formatter. Pressed: tile grey pressed and scale 0.97 (120 ms ease-out); no scale with reduced motion.
+### Buttons
+Apple's round timer button, tactile and plain.
+- **Shape:** a full circle (50%) with the double ring: 2px black gap, then a 2px ring in the button's fill.
+- **Default:** button-grey fill, white label. Sizes: 5.25rem on Presets, 5rem on the stage, 3.25rem for exit.
+- **Start:** start-green-fill with start-green label. On the stage it is Start until running, then becomes grey Pause; the label cross-fades (100ms).
+- **Pressed:** brightness 1.45 over 120ms. **Disabled:** label dims only (white at 32%, green at 38%); the fill stays.
+- **Focus:** a 3px white outline, 3px offset, everywhere.
+- **End:** a capsule in end-red, white text, inside the exit confirm only.
 
-### Play / Pause
-Glass circle, 5rem, centred in the control band. Phosphor icon at 38px, **fill** weight (solid mass reads at distance); the play triangle is nudged 3px right to sit optically centred. The icons swap with a 120 ms fade and a 160 ms scale-from-0.6 and ±30° turn; reduced motion keeps only the fade.
+### Step Buttons and Step Menu
+- Round grey buttons labelled with the current step ("−5 min", "+5 min"). A tap steps; a hold opens the step menu above the button (the button scales to 1.06 while held).
+- **Menu:** opaque menu-grey, 0.875rem corners, 7.5rem wide, 3rem choices (15, 10, 5, 1 min) split by hairlines. The choice under the finger lights menu-highlight and goes 600; it grows from the button (opacity 160ms, scaleY from 0.6 over 200ms). Reduced motion: a 120ms fade only.
 
-### Step Button and Strip
-Glass pill, 3.75rem tall, label "−5" / "+5" in the step style. Hold (380 ms) opens a vertical strip of 15, 10, 5, 1 (top to bottom) offset so the current step sits under the finger; drag to choose, slide off sideways to cancel. The strip is tile grey at 94% so choices stay legible over the white digits; the highlighted choice is white with black text. Open: 160 ms opacity, 200 ms `cubic-bezier(0.16, 1, 0.3, 1)` scaleY from 0.6; the held button scales 1.06. Reduced motion: 120 ms linear fade, no scaling.
+### Grouped Cell and Switch
+- **Cell:** cell-grey, 0.75rem corners, at least 3.25rem tall, 0.5rem 1rem padding: the "Start right away" row, as the iOS timer's "When Timer Ends" row.
+- **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green, because turning it on makes taps start. Knob slides over 220ms.
 
-### Exit and Confirm
-Glass circle, 3.25rem, top-left, Phosphor X at 28px **bold** (the filled X is a square badge and reads as window-close). Paused: exits at once. Running: opens an inline glass pill "End timer?" with the End-red End button, which lapses after 3 s.
+### Preset List (Recents format)
+- Each row: a big light tabular time over grey words ("1 hr, 15 min"), with the action at the right: a grey chevron when tapping sets, a 2.5rem green play circle when tapping starts. Pressed rows take cell-grey. Hairline separators inset to the text.
 
-### Status Pill
-Caution amber, black 800-weight text, full pill, top-centre. Renders only when something threatens the show; plain words that say what to do ("Tap once to keep the screen on").
+### Countdown Wheel
+- Three scroll-snapping columns (hours, min, sec), numbers ending just left of each column's centre with the unit beside them; a quiet-fill band (8px corners) across all three at the centre row; the drum fades to transparent at top and bottom and, where supported, curves with a scroll-linked rotateX. Reduced motion drops the curve. A focused column underlines its unit.
 
-### Timer Digits (signature)
-The fixed-cell line described in Typography. At each live zero crossing the line shakes once (620 ms, decaying ±0.09em, `cubic-bezier(0.36, 0.07, 0.19, 0.97)`), turns overtime red and gains the minus; simultaneously it glides from the old centre to the new one (560 ms, `cubic-bezier(0.65, 0, 0.35, 1)`), so nothing jumps. Reduced motion: no shake, no glide, a 220 ms fade instead. Controls and hint fade in and out at 220 ms ease-out.
+### Capsules and Pills
+- **Hint / exit confirm:** opaque menu-grey capsules, white bold text.
+- **Status pill:** caution-amber, black 800-weight text, centred at the top of the stage.
+
+### Stage Digits (signature)
+- One line of fixed cells keyed from the right, so seconds stay the same element when an hour or the minus appears. At zero: one decaying 620ms "no" shake, the colour turns overtime-red, the line glides half a minus cell to its new centre over 560ms while the minus fades in. Reduced motion: no shake, no glide, a 220ms fade.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep every ground #000 and the digits #fff bold system-ui with tabular figures.
-- **Do** size digits from measured cells with the minus reserved, and keep the control band reserved below them.
-- **Do** put glass only on controls floating over the stage, using the one recipe and its Safari blur and fallback.
-- **Do** use Phosphor icons: fill for play and pause, bold for X.
-- **Do** give every motion a reduced-motion variant (fade instead of shake, scale or glide).
-- **Do** report anything that threatens the show in an amber pill with black text.
+- **Do** keep every background stage-black (#000).
+- **Do** use start-green on start-green-fill only for actions that start counting.
+- **Do** use the round double-ring button for every primary control, grey unless it starts.
+- **Do** size stage digits from measured cells and reserve the minus cell, so nothing moves at zero.
+- **Do** move content on the notch edge in by notch-dim, and size screens with the full-screen height.
+- **Do** give every animation a reduced-motion variant (a fade).
+- **Do** use Phosphor icons only: X bold, ArrowCounterClockwise bold, CaretRight bold, Play fill.
 
 ### Don't:
-- **Don't** use bright red for anything but overtime digits, or deep red for anything but End.
-- **Don't** add rings, progress bars or labels around the time.
-- **Don't** put glass on the preset tiles or give glass an outer drop shadow.
-- **Don't** let the digit size or position change when a digit, the hour or the minus sign changes.
-- **Don't** use SF Symbols or downloaded SF fonts.
-- **Don't** add sound or haptics.
+- **Don't** use orange anywhere; Pause is grey.
+- **Don't** use overtime-red, caution-amber or end-red outside their one meaning.
+- **Don't** use glass, backdrop blur or drop shadows; floating controls are opaque fills.
+- **Don't** load web fonts or SF fonts, or use monospace outside the debug overlay.
+- **Don't** show controls, rings or labels on the running stage.
+- **Don't** use SF Symbols.

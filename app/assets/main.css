@@ -1,4 +1,5 @@
-/* StageTimer: pure black stage, white digits, one state colour (red) for overtime. */
+/* StageTimer: the iOS Clock timer on a pure black stage. White digits; green means start, red means
+   overtime, amber means "needs a tap", deep red is End. */
 :root {
   color-scheme: dark;
   --bg: #000;
@@ -7,9 +8,14 @@
   --caution: #ffd60a; /* "needs a tap" pill, black text on it: 14:1; deliberately not red */
   --destructive: #d70015; /* the End button only; white text on it: 5.4:1 */
   --dim: #8e8e93; /* 6.2:1 on black */
-  --ok: #30d158;
+  --go: #30d158; /* Start, Resume, play: green means start and nothing else */
+  --go-fill: #0a2a12; /* Apple's tinted start button on black; --go on it: 7.4:1 */
+  --button: #333336; /* every other round button; white on it: 12.6:1 */
+  --menu: #2c2c2e; /* menus, capsules and grouped cells */
+  --separator: #38383a;
+  --fill-quiet: rgb(118 118 128 / 0.24); /* the wheel's selection band, an off switch */
+  --chevron: #5a5a5e;
   --tile: #1c1c1e;
-  --tile-pressed: #2c2c2e;
   /* iOS dims a band along the notch edge in the home-screen app, about 85 px deep: 38 px past the
      safe area (measured on the iPhone 13 Pro). Content on that edge moves this much further in. */
   --notch-dim: 2.5rem;
@@ -30,28 +36,26 @@ button { font: inherit; color: inherit; cursor: pointer; }
 ::selection { background: #fff; color: #000; }
 
 /*
- * Liquid glass for floating controls only. Frosted blur everywhere (Safari's rendering), real
- * refraction added in Chromium (backdrop-filter: url() works only there). Cut switch:
- * FEATURES.liquidGlass=false sets .glass-off → plain translucent controls.
+ * Apple's round timer button: a tinted disc, a black gap, then a ring of the same tint. Grey for
+ * everything, green (.btn-go) only for start. Pressed brightens; disabled dims the label only.
  */
-.glass {
+.btn-round {
+  --fill: var(--button);
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--fill);
   color: #fff;
-  border: 1px solid rgb(255 255 255 / 0.24);
-  background: rgb(255 255 255 / 0.1);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  backdrop-filter: blur(20px) saturate(180%);
-  /* Rim light only: an outer drop shadow is invisible on #000 and only darkens digits underneath. */
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.32),
-    inset 0 -1px 0 rgb(255 255 255 / 0.06);
-  transition: background-color 120ms ease-out, transform 120ms ease-out;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fill);
+  font: 400 1.0625rem / 1 system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
+  touch-action: manipulation;
+  transition: filter 120ms ease-out;
 }
-.glass:active { background: rgb(255 255 255 / 0.2); }
-:root.glass-refract .glass {
-  backdrop-filter: url(#lg-refract) blur(4px) saturate(180%);
-}
-:root.glass-off .glass {
-  background: rgb(58 58 60 / 0.88);
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
+.btn-round.btn-go { --fill: var(--go-fill); color: var(--go); }
+.btn-round:active:not(:disabled) { filter: brightness(1.45); }
+.btn-round:disabled { color: rgb(255 255 255 / 0.32); cursor: default; }
+.btn-round.btn-go:disabled { color: rgb(48 209 88 / 0.38); }
+/* A floating text capsule (hint, exit confirm): Apple's HUD grey, no blur. */
+.capsule { background: var(--menu); color: #fff; }

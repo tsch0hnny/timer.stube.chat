@@ -98,13 +98,13 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.mouse.up()
     await settle(page)
     await expect(page.getByTestId('step-strip')).toHaveCount(0)
-    await expect(plus).toHaveText('+10')
-    await expect(page.getByTestId('step-minus')).toHaveText('−10')
+    await expect(plus).toHaveText('+10 min')
+    await expect(page.getByTestId('step-minus')).toHaveText('−10 min')
     await expectTime(page, '45:00 left') // picking does not step
     await plus.click()
     await expectTime(page, '55:00 left')
     await page.reload()
-    await expect(page.getByTestId('step-plus')).toHaveText('+10')
+    await expect(page.getByTestId('step-plus')).toHaveText('+10 min')
   })
 
   // On the iPhone the strip opened from 15 hung below the button and off the screen (device check
@@ -123,7 +123,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
       await page.mouse.move(c.x + c.width / 2, c.y + c.height / 2, { steps: 4 })
       await page.mouse.up()
       await settle(page)
-      await expect(plus).toHaveText(`+${to}`)
+      await expect(plus).toHaveText(`+${to} min`)
     }
     for (const to of [5, 10, 15, 1]) await pick(to)
     await turnToLandscape(page)
@@ -142,7 +142,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.mouse.move(b.x + b.width / 2 + 3, b.y + b.height / 2 + 2) // a resting finger wobbles
     await page.mouse.up()
     await settle(page)
-    await expect(plus).toHaveText('+1')
+    await expect(plus).toHaveText('+1 min')
     await expectTime(page, '45:00 left')
   })
 

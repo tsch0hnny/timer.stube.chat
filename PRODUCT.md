@@ -32,9 +32,9 @@ Built for one stage and one band rather than as a general clock app. It is read 
 
 ## Capabilities and Constraints
 
-- Phase 1 (gig, Sat 14 Nov 2026): the 12 presets (15:00 to 3:00:00 in 15-minute steps), tap → paused landscape timer view, play/pause, −/+ with the step picker (1, 5, 10, 15 min), overtime in red with a shake, the controls behaviour from the spec, wake lock, offline, home-screen install.
-- Cut order if something is broken on the iPhone on the last evening, first to go first: liquid glass (plain translucent controls), the step picker (fixed ±1 and ±5 buttons), the shake. Never cut: correct time, digits that don't jump, the screen staying on, surviving reload and lock.
-- Phase 2: stopwatch mode, custom presets (edit sheet, swipe to delete, long-press animation), the settings pane and all settings, the opening transition, Pocket ID login and synced presets.
+- Phase 1 (gig, Sat 14 Nov 2026): the 12 presets (15:00 to 3:00:00 in 15-minute steps) plus a countdown wheel for any length up to 9:59:59 (added 12 Nov by the owner), tap → paused landscape timer view (a "Start right away" switch, off by default, starts counting on the tap instead), play/pause, −/+ with the step picker (1, 5, 10, 15 min), overtime in red with a shake, the controls behaviour from the spec, wake lock, offline, home-screen install.
+- Cut order if something is broken on the iPhone on the last evening, first to go first: the countdown wheel (the 12 presets stay), the step picker (fixed ±1 and ±5 buttons), the shake. Never cut: correct time, digits that don't jump, the screen staying on, surviving reload and lock.
+- Phase 2: stopwatch mode, custom presets (edit sheet, swipe to delete, long-press animation), the settings pane and all other settings, the opening transition, Pocket ID login and synced presets.
 - Time is stored as absolute UTC timestamps (end time when running, remaining time when paused); the wall clock is the source of truth.
 - Landscape is drawn with a CSS rotation inside the portrait viewport, unless the device spike shows something better.
 - Silent by default. No haptics on iPhone web.
@@ -44,7 +44,8 @@ Built for one stage and one band rather than as a general clock app. It is read 
 ## Brand Commitments
 
 - Hard rules from the owner: pure black background (#000) with white digits, also overriding any "no pure black" guidance (dark stages, OLED). Overtime digits turn red.
-- Liquid glass only on floating controls, and it must look right with Safari's frosted fallback.
+- Look (owner decision, 12 Nov 2026, after two direction rounds): the iOS Clock timer, executed impeccably: countdown wheel, round tinted buttons, lists in Apple's Recents format ("1:15:00" over "1 hr, 15 min"). Craft bar: Apple Clock, Apple Fitness/Workout, Apple Music Now Playing. The stage keeps its full-screen digits instead of Apple's ring.
+- Green means start (Start, Resume, play) and nothing else; no orange. Liquid glass, if used at all, only on floating controls, and it must look right with Safari's frosted fallback.
 - Icons from Phosphor or Lucide, never SF Symbols. Type via `system-ui`; no downloaded SF fonts.
 - Part of the stube.chat umbrella, where rooms are named by function (`timer.`). The Stube couch logo and palette are still drafts and are not binding for this app; the app icon is undecided.
 

@@ -21,7 +21,7 @@ let holdTimer: ReturnType<typeof setTimeout> | undefined
 // step hung off the screen from 5 upwards. The current step stays highlighted until the finger
 // reaches another choice, so releasing anywhere else keeps it.
 const choices = [...STEP_CHOICES].reverse()
-const label = computed(() => `${props.sign > 0 ? '+' : MINUS}${props.step}`)
+const label = computed(() => `${props.sign > 0 ? '+' : MINUS}${props.step} min`)
 const aria = computed(() => `${props.sign > 0 ? 'Add' : 'Subtract'} ${props.step} minute${props.step === 1 ? '' : 's'}${props.picker ? '. Hold to change the step.' : ''}`)
 
 function setOpen(v: boolean) {
@@ -67,7 +67,7 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
   <div class="step-wrap" data-control>
     <button
       type="button"
-      class="step glass"
+      class="step btn-round"
       :class="{ pressed: open }"
       :aria-label="aria"
       :data-testid="sign > 0 ? 'step-plus' : 'step-minus'"
@@ -84,7 +84,7 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
     <Transition name="strip">
       <div
         v-if="open"
-        class="strip glass"
+        class="strip"
         role="listbox"
         :aria-label="`Step size, currently ${step} minutes`"
         data-testid="step-strip"
@@ -99,7 +99,7 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
           :data-step-choice="c"
           :data-testid="`step-choice-${c}`"
         >
-          {{ c }}
+          {{ c }} min
         </div>
       </div>
     </Transition>
@@ -109,38 +109,39 @@ onBeforeUnmount(() => clearTimeout(holdTimer))
 <style scoped>
 .step-wrap { position: relative; }
 .step {
-  min-width: var(--step-size);
+  width: var(--step-size);
   height: var(--step-size);
-  padding: 0 0.6em;
-  border-radius: calc(var(--step-size) / 2);
-  font: 700 var(--step-font) / 1 system-ui, -apple-system, sans-serif;
-  font-variant-numeric: tabular-nums;
+  padding: 0;
+  font-size: var(--step-font);
+  white-space: nowrap;
   touch-action: none;
 }
 .step.pressed { transform: scale(1.06); }
+/* An iOS menu: opaque grey, rounded, hairline separators; the choice under the finger lights up grey,
+   as iOS highlights a menu row (a white block would be the brightest thing on a dark stage). */
 .strip {
-  --choice-h: var(--step-size);
+  --choice-h: 3rem;
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 0.5rem);
-  width: calc(var(--step-size) * 1.15);
+  bottom: calc(100% + 0.75rem);
+  width: 7.5rem;
   transform: translateX(-50%);
   transform-origin: 50% 100%; /* grows out of the button */
-  border-radius: calc(var(--step-size) / 2);
+  border-radius: 0.875rem;
   overflow: hidden;
   z-index: 3;
-  /* It floats over the white digits: near-opaque so every choice stays readable. */
-  background: rgb(28 28 30 / 0.94);
+  background: var(--menu);
 }
 .choice {
   height: var(--choice-h);
   display: grid;
   place-items: center;
-  font: 700 var(--step-font) / 1 system-ui, -apple-system, sans-serif;
+  font: 400 var(--step-font) / 1 system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
-  color: rgb(255 255 255 / 0.85);
+  color: #fff;
 }
-.choice.active { background: #fff; color: #000; }
+.choice + .choice { border-top: 0.5px solid var(--separator); }
+.choice.active { background: rgb(255 255 255 / 0.16); color: #fff; font-weight: 600; }
 .strip-enter-active, .strip-leave-active { transition: opacity 160ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1); }
 .strip-enter-from, .strip-leave-to { opacity: 0; transform: translateX(-50%) scaleY(0.6); }
 @media (prefers-reduced-motion: reduce) {

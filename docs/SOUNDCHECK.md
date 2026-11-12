@@ -10,22 +10,25 @@
    - Turn on a **Focus / Do Not Disturb** mode, so no notification banner covers the digits.
 2. **Open from the home screen (20 s).** Tap the **StageTimer icon**, not Safari. The home-screen app
    has its own storage; a timer started in Safari does not exist there.
-3. **Check the debug overlay (40 s).** Tap the version label at the bottom right five times. Check:
+3. **Check the debug overlay (40 s).** Scroll to the end of the presets list and tap the version
+   label five times. Check:
    - **version** = the frozen gig tag (written below),
    - **service worker** activated and `controlled=true`,
    - **storage** ok.
 
    Close the overlay.
-4. **Start a timer (30 s).** Tap the set length. The paused landscape view opens. If the amber
-   "Tap once to keep the screen on" pill shows, tap the screen until it disappears (iOS sometimes
-   refuses the first tap after opening the app). **No amber pill may stay.** Tap play and watch it count for a few seconds.
+4. **Start a timer (30 s).** Check that **Start right away is off**. Tap the set length in the
+   Presets list (or dial it on the wheel and tap **Set**). The paused landscape view opens. If the
+   amber "Tap once to keep the screen on" pill shows, tap the screen until it disappears (iOS
+   sometimes refuses the first tap after opening the app). **No amber pill may stay.** Tap the green
+   **Start** and watch it count for a few seconds.
 5. **Lock and unlock (1 min).** Lock with the side button, wait 15 s, then unlock. **The time has to
    be right** (it has kept counting) and **there must be no amber pill**. (On the iPhone the screen
    lock comes back by itself after unlocking; if the pill does show, tap until it disappears.)
 6. **Position and read (1 min).** Put the phone where it will sit on the synth, with the stage lights
    on. Check the time is readable from where everyone plays.
 7. **Reset for the set (20 s).** Tap ✕ → End, then tap the set length again so it waits paused. At
-   the first note: **play**.
+   the first note: the green **Start**.
 
 Frozen gig version: `________` (filled in Friday night)
 

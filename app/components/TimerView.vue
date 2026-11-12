@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { PhPause, PhPlay, PhX } from '@phosphor-icons/vue'
+import { PhX } from '@phosphor-icons/vue'
 import { FEATURES, LANDSCAPE_ROTATION } from '~/features'
 import { useStageTimer } from '~/composables/useStageTimer'
 import { useDebugOverlay } from '~/composables/useSecretTaps'
@@ -104,6 +104,10 @@ onMounted(() => {
   syncOrientation()
   mq.addEventListener('change', syncOrientation)
   window.addEventListener('keydown', onKey)
+  // Opened already counting by "Start right away": show Pause for the usual 5 s, as after play.
+  // A timer restored by a reload mid-set stays quiet (it started long before).
+  const s = timer.state.value
+  if (s.status === 'running' && s.durationMs - (s.endAt - Date.now()) < 2000) showControls()
 })
 onBeforeUnmount(() => {
   mq?.removeEventListener('change', syncOrientation)
@@ -140,17 +144,17 @@ const display = timer.display
         <StatusPills :wake-lock-matters="true" />
 
         <Transition name="fade">
-          <p v-if="hint && !controlsVisible" class="hint glass" data-testid="hint">Hold to show controls</p>
+          <p v-if="hint && !controlsVisible" class="hint capsule" data-testid="hint">Hold to show controls</p>
         </Transition>
 
         <Transition name="fade">
           <div v-if="controlsVisible" class="controls" data-testid="controls">
             <div class="exit" data-control>
-              <button type="button" class="round glass exit-btn" aria-label="Back to presets" data-testid="exit" @click="onExit">
-                <PhX :size="28" weight="bold" />
+              <button type="button" class="btn-round exit-btn" aria-label="Back to presets" data-testid="exit" @click="onExit">
+                <PhX :size="22" weight="bold" />
               </button>
               <Transition name="fade">
-                <div v-if="confirmExit" class="confirm glass" data-testid="exit-confirm">
+                <div v-if="confirmExit" class="confirm capsule" data-testid="exit-confirm">
                   <span>End timer?</span>
                   <button type="button" class="end" data-testid="exit-confirm-end" @click="onConfirmEnd">End</button>
                 </div>
@@ -168,15 +172,14 @@ const display = timer.display
 
               <button
                 type="button"
-                class="play glass"
+                class="btn-round play"
+                :class="{ 'btn-go': !isRunning }"
                 data-control
-                :aria-label="isRunning ? 'Pause' : 'Start'"
                 :data-testid="isRunning ? 'pause' : 'play'"
                 @click="onToggle"
               >
-                <Transition name="morph" mode="out-in">
-                  <PhPause v-if="isRunning" key="pause" :size="38" weight="fill" />
-                  <PhPlay v-else key="play" :size="38" weight="fill" class="play-icon" />
+                <Transition name="swap" mode="out-in">
+                  <span :key="isRunning ? 'pause' : 'start'">{{ isRunning ? 'Pause' : 'Start' }}</span>
                 </Transition>
               </button>
 
@@ -239,8 +242,8 @@ const display = timer.display
 .stage[data-rot='ccw'] { --notch-right: var(--notch-dim); }
 .safe {
   --play-size: 5rem;
-  --step-size: 3.75rem;
-  --step-font: 1.375rem;
+  --step-size: 5rem; /* Apple's timer buttons are all one size */
+  --step-font: 1.0625rem;
   --row-bottom: 0.75rem;
   position: relative;
   width: 100%;
@@ -269,17 +272,10 @@ const display = timer.display
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.75rem;
   pointer-events: none;
 }
-.round, .play {
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  touch-action: manipulation;
-}
-.play { width: var(--play-size); height: var(--play-size); }
-.play-icon { transform: translateX(3px); }
+.play { width: var(--play-size); height: var(--play-size); font-size: 1.1875rem; }
 .exit { position: absolute; top: 0.75rem; left: calc(0.75rem + var(--notch-left, 0px)); display: flex; align-items: center; gap: 0.6rem; }
 .exit-btn { width: 3.25rem; height: 3.25rem; }
 .confirm {
@@ -306,7 +302,8 @@ const display = timer.display
   border: 0;
   background: none;
   color: var(--dim);
-  font: 500 0.75rem / 1 ui-monospace, Menlo, monospace;
+  font: 500 0.75rem / 1 system-ui, -apple-system, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 .hint {
   position: absolute;
@@ -322,10 +319,7 @@ const display = timer.display
 
 .fade-enter-active, .fade-leave-active { transition: opacity 220ms ease-out; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
-.morph-enter-active, .morph-leave-active { transition: opacity 120ms ease-out, transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1); }
-.morph-enter-from { opacity: 0; transform: scale(0.6) rotate(-30deg); }
-.morph-leave-to { opacity: 0; transform: scale(0.6) rotate(30deg); }
-@media (prefers-reduced-motion: reduce) {
-  .morph-enter-from, .morph-leave-to { transform: none; }
-}
+/* Start ⇄ Pause: the label cross-fades, as on the iOS timer. */
+.swap-enter-active, .swap-leave-active { transition: opacity 100ms ease-out; }
+.swap-enter-from, .swap-leave-to { opacity: 0; }
 </style>

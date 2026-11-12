@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { HOUR, MINUTE, SECOND, idle, select, start, pause, step, remainingMs, phase, type TimerState } from '../../shared/timer/core'
+import { HOUR, MAX_ABS_MS, MINUTE, SECOND, idle, select, start, pause, step, remainingMs, phase, type TimerState } from '../../shared/timer/core'
 import { display } from '../../shared/timer/display'
-import { createLocalStore, BUILT_IN_PRESETS, type KeyValue } from '../../shared/storage/store'
+import { createLocalStore, BUILT_IN_PRESETS, DEFAULT_PREFS, type KeyValue } from '../../shared/storage/store'
 
 const T0 = Date.UTC(2026, 10, 14, 20, 0, 0)
 
@@ -96,11 +96,36 @@ describe('presets and prefs live behind the same interface', () => {
   })
   it('remembers the chosen step size, defaults to 1 minute, rejects junk', () => {
     const kv = memoryKV()
-    expect(createLocalStore(kv).loadPrefs()).toEqual({ stepMinutes: 1 })
-    createLocalStore(kv).savePrefs({ stepMinutes: 10 })
-    expect(createLocalStore(kv).loadPrefs()).toEqual({ stepMinutes: 10 })
+    expect(createLocalStore(kv).loadPrefs()).toEqual(DEFAULT_PREFS)
+    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, stepMinutes: 10 })
+    expect(createLocalStore(kv).loadPrefs().stepMinutes).toBe(10)
     kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 7 } }))
-    expect(createLocalStore(kv).loadPrefs()).toEqual({ stepMinutes: 1 })
+    expect(createLocalStore(kv).loadPrefs().stepMinutes).toBe(1)
+  })
+  it('remembers "Start right away", off by default; each pref falls back on its own', () => {
+    const kv = memoryKV()
+    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, stepMinutes: 5, startOnTap: true })
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5, startOnTap: true })
+    // Prefs written by e625305 and earlier have no startOnTap: the step survives, the switch is off.
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 15 } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 15 })
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 'x', startOnTap: 'yes' } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual(DEFAULT_PREFS)
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 7, startOnTap: true } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, startOnTap: true })
+  })
+  it('remembers the last length set with the wheel (15 min by default); junk falls back', () => {
+    const kv = memoryKV()
+    expect(createLocalStore(kv).loadPrefs().wheelMs).toBe(15 * MINUTE)
+    const len = HOUR + 7 * MINUTE + 30 * SECOND
+    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, wheelMs: len })
+    expect(createLocalStore(kv).loadPrefs().wheelMs).toBe(len)
+    for (const bad of [0, -1000, 1500, MAX_ABS_MS + 1000, 'x', null, Number.NaN]) {
+      kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, wheelMs: bad } }))
+      expect(createLocalStore(kv).loadPrefs(), String(bad)).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5 })
+    }
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { wheelMs: MAX_ABS_MS } }))
+    expect(createLocalStore(kv).loadPrefs().wheelMs).toBe(MAX_ABS_MS)
   })
   it('does not touch the spike’s keys', () => {
     const kv = memoryKV()

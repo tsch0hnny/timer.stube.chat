@@ -4,8 +4,8 @@
  * surviving reload and lock.
  */
 export const FEATURES = {
-  /** 1st to cut: glass (blur + Chromium refraction) → plain translucent controls. */
-  liquidGlass: true,
+  /** 1st to cut: the countdown wheel (any length) → the 12 presets only. */
+  wheel: true,
   /** 2nd to cut: hold-to-pick step strip → fixed ±1 and ±5 buttons. */
   stepPicker: true,
   /** 3rd to cut: the shake at zero (the red and the minus sign stay). */

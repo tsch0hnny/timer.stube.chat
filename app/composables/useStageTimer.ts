@@ -70,10 +70,16 @@ function create() {
     state, prefs, now, display, phase, zeroCrossings, storageError,
     store,
     wakeLock,
-    /** Tap on a preset: opens the paused timer view. Call from the tap handler. */
+    /**
+     * Tap on a preset or the wheel's button: opens the timer view paused, or already counting when
+     * "Start right away" is on. Call from the tap handler (the wake lock needs that activation).
+     */
     select(durationMs: number) {
       wakeLock.want(true, 'preset tapped')
-      commit(selectCore(durationMs), `select ${durationMs / MINUTE} min`)
+      const paused = selectCore(durationMs)
+      const label = `${Math.round(durationMs / 1000)} s`
+      if (prefs.value.startOnTap) commit(start(paused, Date.now()), `select ${label} and start`)
+      else commit(paused, `select ${label}`)
     },
     toggle() {
       wakeLock.want(true, 'play/pause tapped')
@@ -84,9 +90,21 @@ function create() {
       commit(stepCore(state.value, sign * minutes * MINUTE, Date.now()), `step ${sign > 0 ? '+' : '−'}${minutes}`)
     },
     setStep(minutes: StepMinutes) {
-      prefs.value = { stepMinutes: minutes }
+      prefs.value = { ...prefs.value, stepMinutes: minutes }
       store.savePrefs(prefs.value)
       log('prefs', `step ${minutes} min`)
+    },
+    /** Remembers the wheel's length when it is used, so the wheel opens on it next time. */
+    setWheel(ms: number) {
+      if (ms === prefs.value.wheelMs) return
+      prefs.value = { ...prefs.value, wheelMs: ms }
+      store.savePrefs(prefs.value)
+      log('prefs', `wheel ${Math.round(ms / 1000)} s`)
+    },
+    setStartOnTap(on: boolean) {
+      prefs.value = { ...prefs.value, startOnTap: on }
+      store.savePrefs(prefs.value)
+      log('prefs', `start right away ${on ? 'on' : 'off'}`)
     },
     exit() {
       commit(clear(), 'exit')

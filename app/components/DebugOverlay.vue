@@ -133,7 +133,7 @@ async function copy() {
 h2 { margin: 0 auto 0 0; font-size: 1rem; }
 h3 { margin: 1.25rem 0 0.4rem; font-size: 0.8125rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.04em; }
 .head button { padding: 0.5rem 0.8rem; border-radius: 0.6rem; border: 1px solid #48484a; background: #1c1c1e; color: #fff; font: inherit; }
-.copied { color: var(--ok); }
+.copied { color: #fff; } /* not green: green means start and nothing else */
 dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 0.75rem; margin: 0; }
 dt { color: var(--dim); }
 dd { margin: 0; overflow-wrap: anywhere; }

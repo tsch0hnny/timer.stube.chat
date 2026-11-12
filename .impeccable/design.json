@@ -1,144 +1,553 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-12T04:40:00Z",
+  "generatedAt": "2026-11-12T18:10:27.168Z",
   "title": "Design System: StageTimer",
   "extensions": {
     "colorMeta": {
-      "stage-black": { "role": "neutral", "displayName": "Stage Black", "canonical": "#000000", "tonalRamp": ["#000000", "#0a0a0a", "#141414", "#1f1f1f", "#2b2b2b", "#3a3a3a", "#4d4d4d", "#666666"] },
-      "digit-white": { "role": "primary", "displayName": "Digit White", "canonical": "#ffffff", "tonalRamp": ["#8c8c8c", "#a3a3a3", "#b8b8b8", "#cccccc", "#dedede", "#ebebeb", "#f5f5f5", "#ffffff"] },
-      "overtime-red": { "role": "secondary", "displayName": "Overtime Red", "canonical": "#ff453a", "tonalRamp": ["oklch(15% 0.05 28)", "oklch(27% 0.10 28)", "oklch(39% 0.15 28)", "oklch(52% 0.20 28)", "oklch(66% 0.22 28)", "oklch(76% 0.15 28)", "oklch(86% 0.08 28)", "oklch(95% 0.03 28)"] },
-      "caution-amber": { "role": "secondary", "displayName": "Caution Amber", "canonical": "#ffd60a", "tonalRamp": ["oklch(15% 0.03 95)", "oklch(28% 0.06 95)", "oklch(41% 0.09 95)", "oklch(54% 0.12 95)", "oklch(67% 0.15 95)", "oklch(78% 0.17 95)", "oklch(88% 0.18 95)", "oklch(95% 0.07 95)"] },
-      "end-red": { "role": "tertiary", "displayName": "End Red", "canonical": "#d70015", "tonalRamp": ["oklch(15% 0.06 27)", "oklch(27% 0.11 27)", "oklch(40% 0.17 27)", "oklch(55% 0.22 27)", "oklch(66% 0.18 27)", "oklch(76% 0.12 27)", "oklch(86% 0.07 27)", "oklch(95% 0.02 27)"] },
-      "dim-grey": { "role": "neutral", "displayName": "Dim Grey", "canonical": "#8e8e93", "tonalRamp": ["oklch(15% 0.004 286)", "oklch(27% 0.005 286)", "oklch(39% 0.006 286)", "oklch(51% 0.007 286)", "oklch(64% 0.008 286)", "oklch(75% 0.006 286)", "oklch(85% 0.004 286)", "oklch(95% 0.002 286)"] },
-      "tile-grey": { "role": "neutral", "displayName": "Tile Grey", "canonical": "#1c1c1e", "tonalRamp": ["#000000", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#48484a", "#636366", "#8e8e93", "#c7c7cc"] },
-      "tile-grey-pressed": { "role": "neutral", "displayName": "Tile Grey Pressed", "canonical": "#2c2c2e", "tonalRamp": ["#000000", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#48484a", "#636366", "#8e8e93", "#c7c7cc"] }
+      "stage-black": {
+        "role": "neutral",
+        "displayName": "Stage Black",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ],
+        "oklch": "oklch(0.0% 0.000 0.0)"
+      },
+      "digit-white": {
+        "role": "neutral",
+        "displayName": "Digit White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
+        ],
+        "oklch": "oklch(100.0% 0.000 0.0)"
+      },
+      "overtime-red": {
+        "role": "secondary",
+        "displayName": "Overtime Red",
+        "canonical": "#ff453a",
+        "tonalRamp": [
+          "#170604",
+          "#480b08",
+          "#810003",
+          "#bf0000",
+          "#e93129",
+          "#f77a6c",
+          "#ffb3a8",
+          "#ffe7e2"
+        ],
+        "oklch": "oklch(66.3% 0.224 28.3)"
+      },
+      "caution-amber": {
+        "role": "secondary",
+        "displayName": "Caution Amber",
+        "canonical": "#ffd60a",
+        "tonalRamp": [
+          "#0f0b01",
+          "#312300",
+          "#573e00",
+          "#825b00",
+          "#a47d00",
+          "#bea43a",
+          "#d8c992",
+          "#f4efdb"
+        ],
+        "oklch": "oklch(88.5% 0.181 94.8)"
+      },
+      "end-red": {
+        "role": "secondary",
+        "displayName": "End Red",
+        "canonical": "#d70015",
+        "tonalRamp": [
+          "#170504",
+          "#480a09",
+          "#820006",
+          "#c00000",
+          "#e92e2d",
+          "#f8796d",
+          "#ffb2a8",
+          "#ffe7e2"
+        ],
+        "oklch": "oklch(55.3% 0.225 27.3)"
+      },
+      "start-green": {
+        "role": "primary",
+        "displayName": "Start Green",
+        "canonical": "#30d158",
+        "tonalRamp": [
+          "#030f04",
+          "#002f07",
+          "#005400",
+          "#007c00",
+          "#00a027",
+          "#60bd6d",
+          "#a5d9a9",
+          "#e2f5e3"
+        ],
+        "oklch": "oklch(75.6% 0.208 147.0)"
+      },
+      "start-green-fill": {
+        "role": "primary",
+        "displayName": "Start Green Fill",
+        "canonical": "#0a2a12",
+        "tonalRamp": [
+          "#090c09",
+          "#1d281f",
+          "#334836",
+          "#4a6a4f",
+          "#6b8c70",
+          "#94ad97",
+          "#bfcec1",
+          "#ebf0eb"
+        ],
+        "oklch": "oklch(25.4% 0.058 148.8)"
+      },
+      "start-green-disabled": {
+        "role": "primary",
+        "displayName": "Start Green, Disabled",
+        "canonical": "rgb(48 209 88 / 0.38)"
+      },
+      "secondary-grey": {
+        "role": "neutral",
+        "displayName": "Secondary Grey",
+        "canonical": "#8e8e93",
+        "tonalRamp": [
+          "#0b0b0c",
+          "#252526",
+          "#424245",
+          "#616165",
+          "#828287",
+          "#a5a5a8",
+          "#c9c9cb",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(64.8% 0.007 286.2)"
+      },
+      "button-grey": {
+        "role": "neutral",
+        "displayName": "Button Grey",
+        "canonical": "#333336",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424244",
+          "#616164",
+          "#828285",
+          "#a5a5a7",
+          "#c9c9ca",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(32.2% 0.005 286.1)"
+      },
+      "menu-grey": {
+        "role": "neutral",
+        "displayName": "Menu Grey",
+        "canonical": "#2c2c2e",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424243",
+          "#616163",
+          "#828284",
+          "#a5a5a6",
+          "#c9c9ca",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(29.4% 0.004 286.2)"
+      },
+      "cell-grey": {
+        "role": "neutral",
+        "displayName": "Cell Grey",
+        "canonical": "#1c1c1e",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424243",
+          "#616163",
+          "#828284",
+          "#a5a5a7",
+          "#c9c9ca",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(22.7% 0.004 286.1)"
+      },
+      "separator-grey": {
+        "role": "neutral",
+        "displayName": "Separator Grey",
+        "canonical": "#38383a",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424243",
+          "#616163",
+          "#828284",
+          "#a5a5a6",
+          "#c9c9ca",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(34.1% 0.003 286.2)"
+      },
+      "chevron-grey": {
+        "role": "neutral",
+        "displayName": "Chevron Grey",
+        "canonical": "#5a5a5e",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424244",
+          "#616165",
+          "#828286",
+          "#a5a5a8",
+          "#c9c9cb",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(46.9% 0.006 286.2)"
+      },
+      "quiet-fill": {
+        "role": "neutral",
+        "displayName": "Quiet Fill",
+        "canonical": "rgb(118 118 128 / 0.24)"
+      },
+      "menu-highlight": {
+        "role": "neutral",
+        "displayName": "Menu Highlight",
+        "canonical": "rgb(255 255 255 / 0.16)"
+      },
+      "label-disabled": {
+        "role": "neutral",
+        "displayName": "Label Disabled",
+        "canonical": "rgb(255 255 255 / 0.32)"
+      },
+      "debug-scrim": {
+        "role": "neutral",
+        "displayName": "Debug Scrim",
+        "canonical": "rgb(0 0 0 / 0.94)"
+      },
+      "debug-border": {
+        "role": "neutral",
+        "displayName": "Debug Border",
+        "canonical": "#48484a",
+        "tonalRamp": [
+          "#0b0b0b",
+          "#252526",
+          "#424243",
+          "#616163",
+          "#828284",
+          "#a5a5a6",
+          "#c9c9ca",
+          "#eeeeef"
+        ],
+        "oklch": "oklch(40.2% 0.003 286.3)"
+      }
     },
     "typographyMeta": {
-      "digits": { "displayName": "Digits", "purpose": "The timer line. Timer view: min(100cqw / line-em, 92cqh) of the digit box; preset tiles: 100cqw / 4.3 of the tile. Fixed cells measured from the device font, minus cell reserved." },
-      "step": { "displayName": "Step", "purpose": "±step labels and step strip choices, tabular." },
-      "notice": { "displayName": "Notice", "purpose": "Amber status pills." },
-      "hint": { "displayName": "Hint", "purpose": "The glass 'Hold to show controls' hint." },
-      "confirm": { "displayName": "Confirm", "purpose": "'End timer?' and the End button." },
-      "update": { "displayName": "Update", "purpose": "The 'Update ready · reload' pill on the presets screen." },
-      "meta": { "displayName": "Meta", "purpose": "Version label (dim grey)." },
-      "debug": { "displayName": "Debug", "purpose": "Hidden debug overlay: rows, event log and uppercase dim section labels. Never on stage." },
-      "debug-title": { "displayName": "Debug Title", "purpose": "The debug overlay heading." }
+      "digits": {
+        "displayName": "Stage Digits",
+        "purpose": "The one full-screen line on the stage; sized to fit, fixed measured cells."
+      },
+      "preset-time": {
+        "displayName": "Preset Time",
+        "purpose": "Big light tabular times in the Recents-format list."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "The \"Presets\" list header."
+      },
+      "wheel-number": {
+        "displayName": "Wheel Number",
+        "purpose": "Countdown wheel numbers."
+      },
+      "wheel-unit": {
+        "displayName": "Wheel Unit",
+        "purpose": "hours / min / sec beside the wheel band."
+      },
+      "play-label": {
+        "displayName": "Play Label",
+        "purpose": "Start / Pause in the stage centre button."
+      },
+      "button-label": {
+        "displayName": "Button Label",
+        "purpose": "Round buttons, step labels and step menu choices."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "The grouped \"Start right away\" cell."
+      },
+      "notice": {
+        "displayName": "Notice",
+        "purpose": "The amber \"needs a tap\" pill."
+      },
+      "hint": {
+        "displayName": "Hint",
+        "purpose": "The hint capsule (\"Hold to show controls\")."
+      },
+      "confirm": {
+        "displayName": "Confirm",
+        "purpose": "\"End timer?\" and its End button."
+      },
+      "secondary": {
+        "displayName": "Secondary",
+        "purpose": "Words under a preset time (\"1 hr, 15 min\")."
+      },
+      "update": {
+        "displayName": "Update",
+        "purpose": "The update-available capsule."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "The version label."
+      },
+      "debug": {
+        "displayName": "Debug",
+        "purpose": "Hidden diagnostic overlay only; the one monospace use."
+      },
+      "debug-title": {
+        "displayName": "Debug Title",
+        "purpose": "Diagnostic overlay title."
+      }
     },
     "shadows": [
-      { "name": "glass-rim", "value": "inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06)", "purpose": "Rim light on every glass control, with a 1px rgb(255 255 255 / 0.24) stroke. No outer shadow." }
+      {
+        "name": "button-ring",
+        "value": "0 0 0 2px var(--bg), 0 0 0 4px var(--fill)",
+        "purpose": "Apple's double ring on every round button: a black gap, then a ring in the button's own fill. An outline, not elevation."
+      }
     ],
     "motion": [
-      { "name": "fade", "value": "opacity 220ms ease-out", "purpose": "Controls, hint and exit confirm in/out; also the reduced-motion replacement for the zero glide." },
-      { "name": "press", "value": "background-color 120ms ease-out, transform 120ms ease-out", "purpose": "Glass and preset tile press feedback (tile scale 0.97, none with reduced motion)." },
-      { "name": "icon-morph", "value": "opacity 120ms ease-out, transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Play/pause swap from scale 0.6 and ±30°; reduced motion: opacity only." },
-      { "name": "strip-open", "value": "opacity 160ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Step strip open/close (scaleY from 0.6); reduced motion: opacity 120ms linear." },
-      { "name": "zero-shake", "value": "620ms cubic-bezier(0.36, 0.07, 0.19, 0.97)", "purpose": "One decaying horizontal shake (peak ±0.09em) per live zero crossing; none with reduced motion." },
-      { "name": "zero-glide", "value": "560ms cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "Glide from the old centre to the new one when the minus appears or goes; 220ms fade with reduced motion." }
+      {
+        "name": "press",
+        "value": "filter 120ms ease-out (brightness 1.45)",
+        "purpose": "Round buttons brighten while pressed."
+      },
+      {
+        "name": "label-swap",
+        "value": "opacity 100ms ease-out",
+        "purpose": "Start/Pause label cross-fade."
+      },
+      {
+        "name": "controls-fade",
+        "value": "opacity 220ms ease-out",
+        "purpose": "Stage controls appear and leave."
+      },
+      {
+        "name": "switch-knob",
+        "value": "transform 220ms cubic-bezier(0.3, 0.7, 0.4, 1)",
+        "purpose": "Switch knob slide; track colour 200ms ease-out."
+      },
+      {
+        "name": "menu-grow",
+        "value": "opacity 160ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Step menu grows out of its button (scaleY from 0.6). Reduced motion: opacity 120ms linear."
+      },
+      {
+        "name": "overtime-shake",
+        "value": "620ms cubic-bezier(0.36, 0.07, 0.19, 0.97)",
+        "purpose": "One decaying \"no\" shake at zero. Reduced motion: none."
+      },
+      {
+        "name": "recentre-glide",
+        "value": "560ms cubic-bezier(0.65, 0, 0.35, 1)",
+        "purpose": "Line glides half a minus cell to its new centre while the minus fades in (560ms ease-in). Reduced motion: 220ms fade."
+      },
+      {
+        "name": "wheel-drum",
+        "value": "scroll-linked rotateX(±62deg), opacity 0.5",
+        "purpose": "Wheel curve where animation-timeline: view() is supported. Reduced motion: none."
+      }
     ],
     "breakpoints": [
-      { "name": "orientation-landscape", "value": "(orientation: landscape)", "purpose": "Presets switch 3×4 to 4×3; timer view drops the CSS rotation." }
-    ]
+      {
+        "name": "landscape",
+        "value": "(orientation: landscape)",
+        "purpose": "Presets in two columns."
+      },
+      {
+        "name": "landscape-sticky",
+        "value": "(orientation: landscape) and (min-height: 360px)",
+        "purpose": "Wheel column sticks; only the list scrolls."
+      },
+      {
+        "name": "landscape-short",
+        "value": "(orientation: landscape) and (max-height: 500px)",
+        "purpose": "Wheel shows 5 rows instead of 7."
+      },
+      {
+        "name": "standalone-portrait",
+        "value": "(display-mode: standalone) and (orientation: portrait)",
+        "purpose": "Presets top padding adds notch-dim."
+      }
+    ],
+    "layout": {
+      "appHeight": "var(--app-h, 100dvh): measured full screen height in the iOS home-screen app, 100dvh elsewhere.",
+      "notchDim": "--notch-dim: 2.5rem (iOS dims about 85px along the notch edge, 38px past the safe area, measured on iPhone 13 Pro)."
+    },
+    "icons": {
+      "library": "Phosphor (@phosphor-icons/vue)",
+      "used": [
+        "X bold",
+        "ArrowCounterClockwise bold",
+        "CaretRight bold",
+        "Play fill"
+      ]
+    }
   },
   "components": [
     {
-      "name": "Preset Tile",
+      "name": "Round Button",
+      "kind": "button",
+      "refersTo": "button-round",
+      "description": "Apple's round timer button with the double ring; grey for every control that is not start.",
+      "html": "<div style=\"background:#000;padding:16px;display:flex;gap:20px\"><button class=\"ds-btn-round\">+5 min</button><button class=\"ds-btn-round\">Pause</button></div>",
+      "css": ".ds-btn-round { --fill: #333336; display: inline-grid; place-items: center; width: 5rem; height: 5rem; border: 0; border-radius: 50%; background: var(--fill); color: #fff; box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--fill); font: 400 1.0625rem / 1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: filter 120ms ease-out; } .ds-btn-round:active:not(:disabled) { filter: brightness(1.45); } .ds-btn-round:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-btn-round:disabled { color: rgb(255 255 255 / 0.32); cursor: default; }"
+    },
+    {
+      "name": "Start Button",
+      "kind": "button",
+      "refersTo": "button-start",
+      "description": "The only green control: Start on the stage, Start on Presets when \"Start right away\" is on.",
+      "html": "<div style=\"background:#000;padding:16px\"><button class=\"ds-btn-start\">Start</button></div>",
+      "css": ".ds-btn-start { --fill: #0a2a12; display: inline-grid; place-items: center; width: 5rem; height: 5rem; border: 0; border-radius: 50%; background: var(--fill); color: #30d158; box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--fill); font: 400 1.1875rem / 1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: filter 120ms ease-out; } .ds-btn-start:active:not(:disabled) { filter: brightness(1.45); } .ds-btn-start:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-btn-start:disabled { color: rgb(48 209 88 / 0.38); cursor: default; }"
+    },
+    {
+      "name": "Exit Button with End Confirm",
+      "kind": "button",
+      "refersTo": "button-end",
+      "description": "The 3.25rem exit button (Phosphor X bold) and the inline \"End timer?\" capsule with the deep-red End.",
+      "html": "<div style=\"background:#000;padding:16px;display:flex;align-items:center;gap:0.6rem\"><button class=\"ds-exit\" aria-label=\"Back to presets\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"22\" height=\"22\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z\"/></svg></button><div class=\"ds-confirm\"><span>End timer?</span><button class=\"ds-end\">End</button></div></div>",
+      "css": ".ds-exit { --fill: #333336; display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border: 0; border-radius: 50%; background: var(--fill); color: #fff; box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--fill); cursor: pointer; transition: filter 120ms ease-out; } .ds-exit:active { filter: brightness(1.45); } .ds-exit:focus-visible, .ds-end:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-confirm { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0.4rem 0.35rem 1rem; border-radius: 999px; background: #2c2c2e; color: #fff; font: 700 1.125rem / 1 system-ui, -apple-system, sans-serif; } .ds-end { padding: 0.6rem 1.1rem; border-radius: 999px; border: 0; background: #d70015; color: #fff; font: inherit; cursor: pointer; }"
+    },
+    {
+      "name": "Start Right Away Cell",
+      "kind": "input",
+      "refersTo": "grouped-cell",
+      "description": "The grouped switch cell; the switch turns green because on means taps start.",
+      "html": "<div style=\"background:#000;padding:16px;width:340px\"><label class=\"ds-cell\"><span>Start right away</span><span class=\"ds-switch\"><input type=\"checkbox\" role=\"switch\"><span class=\"ds-knob\"></span></span></label></div>",
+      "css": ".ds-cell { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 3.25rem; padding: 0.5rem 1rem; border-radius: 0.75rem; background: #1c1c1e; color: #fff; font: 400 1.0625rem / 1.2 system-ui, -apple-system, sans-serif; cursor: pointer; } .ds-switch { position: relative; flex: none; width: 51px; height: 31px; } .ds-switch input { position: absolute; inset: 0; margin: 0; appearance: none; -webkit-appearance: none; border-radius: 999px; background: rgb(118 118 128 / 0.24); cursor: pointer; transition: background-color 200ms ease-out; } .ds-switch input:checked { background: #30d158; } .ds-switch input:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-knob { position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; pointer-events: none; transition: transform 220ms cubic-bezier(0.3, 0.7, 0.4, 1); } .ds-switch input:checked + .ds-knob { transform: translateX(20px); }"
+    },
+    {
+      "name": "Preset Row",
       "kind": "card",
-      "refersTo": "preset-tile",
-      "description": "Plain filled tap target showing the preset duration in the timer's own digits.",
-      "html": "<button class=\"ds-tile\"><span class=\"ds-tile-digits\">1:15:00</span></button>",
-      "css": ".ds-tile { width: 180px; height: 220px; display: grid; place-items: center; border: 0; border-radius: 1.25rem; background: var(--tile, #1c1c1e); color: #fff; cursor: pointer; transition: background-color 120ms ease-out, transform 120ms ease-out; } .ds-tile-digits { font: 700 2.6rem/1 system-ui, -apple-system, Roboto, sans-serif; font-variant-numeric: tabular-nums; } .ds-tile:active { background: var(--tile-pressed, #2c2c2e); transform: scale(0.97); } .ds-tile:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }"
+      "refersTo": "preset-row",
+      "description": "Apple's Recents row: big light time, grey words, chevron (sets) or green play circle (starts).",
+      "html": "<div style=\"background:#000;width:360px\"><button class=\"ds-preset\"><span class=\"ds-time\">1:15:00</span><span class=\"ds-words\">1 hr, 15 min</span><svg class=\"ds-chevron\" xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z\"/></svg></button><button class=\"ds-preset\"><span class=\"ds-time\">1:30:00</span><span class=\"ds-words\">1 hr, 30 min</span><span class=\"ds-go\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z\"/></svg></span></button></div>",
+      "css": ".ds-preset { position: relative; width: 100%; display: grid; grid-template-columns: 1fr auto; align-items: center; column-gap: 1rem; padding: 0.6rem 1.25rem; border: 0; background: none; color: #fff; text-align: left; cursor: pointer; transition: background-color 120ms ease-out; } .ds-preset::after { content: \"\"; position: absolute; left: 1.25rem; right: 0; bottom: 0; height: 0.5px; background: #38383a; } .ds-preset:active { background: #1c1c1e; } .ds-preset:focus-visible { outline: 3px solid #fff; outline-offset: -3px; } .ds-time { grid-column: 1; font: 300 2.5rem / 1.08 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; } .ds-words { grid-column: 1; font: 400 0.9375rem / 1.3 system-ui, -apple-system, sans-serif; color: #8e8e93; } .ds-chevron, .ds-go { grid-column: 2; grid-row: 1 / span 2; } .ds-chevron { color: #5a5a5e; } .ds-go { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; border-radius: 50%; background: #0a2a12; color: #30d158; } .ds-go svg { transform: translateX(1px); }"
     },
     {
-      "name": "Play Button",
-      "kind": "button",
-      "refersTo": "play-button",
-      "description": "Glass circle centred in the control band, Phosphor play (fill).",
-      "html": "<button class=\"ds-glass ds-play\" aria-label=\"Start\"><svg width=\"38\" height=\"38\" viewBox=\"0 0 256 256\" fill=\"currentColor\" style=\"transform: translateX(3px)\"><path d=\"M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z\"/></svg></button>",
-      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out, transform 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-play { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; }"
-    },
-    {
-      "name": "Pause Button",
-      "kind": "button",
-      "refersTo": "play-button",
-      "description": "The same glass circle while running, Phosphor pause (fill).",
-      "html": "<button class=\"ds-glass ds-play\" aria-label=\"Pause\"><svg width=\"38\" height=\"38\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z\"/></svg></button>",
-      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-play { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; }"
-    },
-    {
-      "name": "Step Button",
-      "kind": "button",
-      "refersTo": "step-button",
-      "description": "Glass pill for ±step; hold opens the step strip.",
-      "html": "<button class=\"ds-glass ds-step\">+5</button>",
-      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out, transform 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-step { min-width: 3.75rem; height: 3.75rem; padding: 0 0.6em; border-radius: 1.875rem; font: 700 1.375rem/1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; }"
-    },
-    {
-      "name": "Step Strip",
+      "name": "Step Menu",
       "kind": "custom",
-      "refersTo": "step-choice-active",
-      "description": "Near-opaque vertical picker (15, 10, 5, 1) opened by holding a step button; highlighted choice is white with black text.",
-      "html": "<div class=\"ds-strip\" role=\"listbox\"><div class=\"ds-choice\">15</div><div class=\"ds-choice\">10</div><div class=\"ds-choice ds-active\">5</div><div class=\"ds-choice\">1</div></div>",
-      "css": ".ds-strip { width: 4.3rem; border-radius: 1.875rem; overflow: hidden; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(28 28 30 / 0.94); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); } .ds-choice { height: 3.75rem; display: grid; place-items: center; font: 700 1.375rem/1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; color: rgb(255 255 255 / 0.85); } .ds-choice:hover, .ds-active { background: #fff; color: #000; }"
+      "refersTo": "step-menu",
+      "description": "The iOS-style menu a held step button opens above itself; the choice under the finger lights grey.",
+      "html": "<div style=\"background:#000;padding:16px\"><div class=\"ds-menu\" role=\"listbox\"><div class=\"ds-choice\">15 min</div><div class=\"ds-choice\">10 min</div><div class=\"ds-choice\">5 min</div><div class=\"ds-choice ds-active\">1 min</div></div></div>",
+      "css": ".ds-menu { width: 7.5rem; border-radius: 0.875rem; overflow: hidden; background: #2c2c2e; } .ds-choice { height: 3rem; display: grid; place-items: center; font: 400 1.0625rem / 1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; color: #fff; cursor: pointer; } .ds-choice + .ds-choice { border-top: 0.5px solid #38383a; } .ds-choice:hover, .ds-active { background: rgb(255 255 255 / 0.16); font-weight: 600; }"
     },
     {
-      "name": "Exit Button with Confirm",
-      "kind": "button",
-      "refersTo": "exit-button",
-      "description": "Glass circle with Phosphor X (bold); while running it opens an inline 'End timer?' glass pill with the End-red button.",
-      "html": "<div class=\"ds-exit\"><button class=\"ds-glass ds-exit-btn\" aria-label=\"Back to presets\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z\"/></svg></button><div class=\"ds-glass ds-confirm\"><span>End timer?</span><button class=\"ds-end\">End</button></div></div>",
-      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out; } .ds-exit { display: flex; align-items: center; gap: 0.6rem; } .ds-exit-btn { width: 3.25rem; height: 3.25rem; display: grid; place-items: center; border-radius: 50%; cursor: pointer; } .ds-exit-btn:active { background: rgb(255 255 255 / 0.2); } .ds-confirm { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0.4rem 0.35rem 1rem; border-radius: 999px; font: 700 1.125rem/1 system-ui, -apple-system, sans-serif; } .ds-end { padding: 0.6rem 1.1rem; border-radius: 999px; border: 0; background: var(--destructive, #d70015); color: #fff; font: inherit; cursor: pointer; } .ds-exit-btn:focus-visible, .ds-end:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }"
-    },
-    {
-      "name": "Status Pill",
+      "name": "Capsule and Status Pill",
       "kind": "chip",
-      "refersTo": "status-pill",
-      "description": "Amber pill with black text, shown only when something threatens the show.",
-      "html": "<p class=\"ds-pill\" role=\"status\">Tap once to keep the screen on</p>",
-      "css": ".ds-pill { display: inline-block; margin: 0; padding: 0.4em 0.9em; border-radius: 999px; background: var(--caution, #ffd60a); color: #000; font: 800 1.25rem/1.2 system-ui, -apple-system, sans-serif; white-space: nowrap; }"
+      "refersTo": "pill-caution",
+      "description": "Opaque grey hint capsule, and the amber \"needs a tap\" pill (amber, never red).",
+      "html": "<div style=\"background:#000;padding:16px;display:flex;flex-direction:column;gap:12px;align-items:flex-start\"><p class=\"ds-capsule\">Hold to show controls</p><p class=\"ds-pill\">Tap once to keep the screen on</p></div>",
+      "css": ".ds-capsule { margin: 0; padding: 0.6em 1.2em; border-radius: 999px; background: #2c2c2e; color: #fff; font: 700 1.25rem / 1.2 system-ui, -apple-system, sans-serif; } .ds-pill { margin: 0; padding: 0.4em 0.9em; border-radius: 999px; background: #ffd60a; color: #000; font: 800 1.25rem / 1.2 system-ui, -apple-system, sans-serif; white-space: nowrap; }"
     },
     {
-      "name": "Timer Digits",
+      "name": "Countdown Wheel",
+      "kind": "input",
+      "refersTo": "wheel-band",
+      "description": "Three-column iOS wheel with the quiet selection band; numbers end left of centre, the unit follows.",
+      "html": "<div style=\"background:#000;padding:16px;width:340px\"><div class=\"ds-wheel\"><div class=\"ds-band\"></div><div class=\"ds-col\"><div class=\"ds-n ds-dim\">0</div><div class=\"ds-n\">1</div><div class=\"ds-n ds-dim\">2</div><span class=\"ds-unit\">hours</span></div><div class=\"ds-col\"><div class=\"ds-n ds-dim\">14</div><div class=\"ds-n\">15</div><div class=\"ds-n ds-dim\">16</div><span class=\"ds-unit\">min</span></div><div class=\"ds-col\"><div class=\"ds-n ds-dim\">59</div><div class=\"ds-n\">0</div><div class=\"ds-n ds-dim\">1</div><span class=\"ds-unit\">sec</span></div></div></div>",
+      "css": ".ds-wheel { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); } .ds-band { position: absolute; left: 0; right: 0; top: 34px; height: 34px; border-radius: 8px; background: rgb(118 118 128 / 0.24); } .ds-col { position: relative; } .ds-n { height: 34px; display: flex; align-items: center; justify-content: flex-end; padding-right: calc(50% + 0.15rem); font: 400 1.4375rem / 1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; color: #fff; } .ds-dim { opacity: 0.5; } .ds-unit { position: absolute; left: calc(50% + 0.55rem); top: 34px; height: 34px; display: flex; align-items: center; color: #fff; font: 600 1.0625rem / 1 system-ui, -apple-system, sans-serif; }"
+    },
+    {
+      "name": "Stage Digits",
       "kind": "custom",
       "refersTo": "digits",
-      "description": "The fixed-cell digit line; white while counting down, overtime red with a minus below zero.",
-      "html": "<div class=\"ds-digits\"><span class=\"ds-cell\">4</span><span class=\"ds-cell\">5</span><span class=\"ds-cell ds-colon\">:</span><span class=\"ds-cell\">0</span><span class=\"ds-cell\">0</span></div><div class=\"ds-digits ds-over\"><span class=\"ds-cell\">&#8722;</span><span class=\"ds-cell\">0</span><span class=\"ds-cell\">1</span><span class=\"ds-cell ds-colon\">:</span><span class=\"ds-cell\">2</span><span class=\"ds-cell\">7</span></div>",
-      "css": ".ds-digits { display: flex; justify-content: center; padding: 0.1em 0; background: var(--bg, #000); color: #fff; font: 700 4.5rem/1 system-ui, -apple-system, Roboto, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-cell { display: inline-block; width: 0.62em; text-align: center; } .ds-colon { width: 0.32em; } .ds-over { color: var(--overtime, #ff453a); }"
+      "description": "Signature: one line of heavy white digits in fixed cells; red in overtime with the reserved minus cell.",
+      "html": "<div style=\"background:#000;padding:16px;display:flex;flex-direction:column;gap:8px\"><div class=\"ds-digits\"><span class=\"ds-c ds-d\">4</span><span class=\"ds-c ds-d\">5</span><span class=\"ds-c ds-k\">:</span><span class=\"ds-c ds-d\">0</span><span class=\"ds-c ds-d\">0</span></div><div class=\"ds-digits ds-over\"><span class=\"ds-c ds-m\">−</span><span class=\"ds-c ds-d\">0</span><span class=\"ds-c ds-k\">:</span><span class=\"ds-c ds-d\">1</span><span class=\"ds-c ds-d\">2</span></div></div>",
+      "css": ".ds-digits { display: flex; justify-content: center; color: #fff; font: 700 4.5rem / 1 system-ui, -apple-system, Roboto, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-over { color: #ff453a; } .ds-c { display: inline-block; text-align: center; } .ds-d { width: 0.62em; } .ds-k { width: 0.32em; } .ds-m { width: 0.62em; }"
     }
   ],
   "narrative": {
-    "northStar": "The Digits Are the Interface",
-    "overview": "A single line of bold white numerals on pure black, held in fixed cells so nothing ever jumps. While the timer runs there is nothing else on screen; controls are summoned, float over the black as glass, and fade away again. The system is built for one job: read the time at an angle from 2 m under stage light, on an OLED phone lying on a synth.\n\nPure black and system-ui are owner-pinned hard rules (PRODUCT.md), not defaults to revisit. Colour is semantic and scarce: each hue means exactly one thing. The category default (rings, progress bars, labels around a small clock) is rejected.",
+    "northStar": "The iOS Clock Timer, Executed Impeccably",
+    "overview": "StageTimer takes the category standard on purpose. The Presets screen is Apple's countdown timer: a three-column wheel with a grey selection band, two big round tinted buttons, one grouped switch cell, and a list in the Recents format. Familiarity is the point; craft is the bar, measured against Apple Clock, Fitness/Workout and Music Now Playing. Nothing on the screen should need explaining to someone who has set a timer on an iPhone.\n\nThe one deviation is the product itself: the stage. Where Apple draws a ring, StageTimer draws one full-screen line of heavy white digits on pure black, in landscape, sized to the largest that fits legibly and built from fixed-width cells so no digit ever moves. While running, the stage shows the time and nothing else; a long press brings back the control row. At zero the line shakes once, turns red, and a minus fades in from a cell that was reserved for it all along.\n\nSurfaces are flat and opaque. The earlier liquid-glass treatment was removed with this redesign; controls are iOS fills on black, separated by tone and hairlines, never by blur or shadow. Colour carries meaning and nothing else: one hue per meaning, white for everything that is just information.",
     "keyCharacteristics": [
-      "Pure #000 ground, white bold tabular digits sized to the largest width that fits.",
-      "Digit cells measured from the device's own font; the minus cell reserved from the start.",
-      "One meaning per colour: bright red = overtime, amber = needs a tap, deep red = End.",
-      "Glass only on floating controls; preset tiles are plain filled tap targets.",
-      "Silent; motion is short, and every movement has a reduced-motion variant."
+      "Pure #000 ground, white system-ui type, OLED-dark under stage light.",
+      "Apple's round button with its double ring: grey for everything, green only for start.",
+      "Lists in Apple's Recents format: big light tabular time over grey words, hairline separators inset to the text.",
+      "One full-screen line of fixed-cell digits on the stage; nothing else while running.",
+      "Opaque fills only; no glass, no shadows for depth.",
+      "Every motion has a reduced-motion variant (fades instead of shake, scale and glide)."
     ],
     "rules": [
-      { "name": "The One Meaning Rule", "body": "Each hue carries one meaning. Bright red is overtime only; deep red is End only; amber is \"needs a tap\" only. A new state gets a new meaning only by owner decision, never by reusing a hue.", "section": "colors" },
-      { "name": "The Pure Black Rule", "body": "The ground is #000 on every surface, overriding any \"no pure black\" guidance (dark stages, OLED).", "section": "colors" },
-      { "name": "The Fixed Cell Rule", "body": "Every digit sits in a cell as wide as the widest digit 0–9, measured at runtime from the resolved font (weight 700, tabular-nums); colon and minus get their own measured cells. Cells are keyed from the right so seconds stay the same element when an hour or minus appears.", "section": "typography" },
-      { "name": "The Reserved Minus Rule", "body": "The line is sized as if the minus were already present, so the digit size never changes at zero.", "section": "typography" },
-      { "name": "The Quiet Stage Rule", "body": "While running, nothing renders but the digits and any status pill that reports a threat. Controls come back on long press (500 ms) and auto-hide after 5 s without touches.", "section": "layout" },
-      { "name": "The Glass Recipe Rule", "body": "Glass is a 10% white fill, `blur(20px) saturate(180%)`, a 1px 24% white rim and the inset rim light above. Pressed raises the fill to 20%. In Chromium the blur is replaced by a refraction filter plus `blur(4px)`; Safari keeps the frosted blur, and it must look right there. The cut switch falls back to a plain `rgb(58 58 60 / 0.88)` fill with no backdrop filter.", "section": "elevation" },
-      { "name": "The No Outer Shadow Rule", "body": "Glass casts no outer shadow: on #000 it is invisible and only darkens the digits underneath.", "section": "elevation" }
+      {
+        "name": "The One Meaning Rule",
+        "body": "Green is start, red is overtime, amber is \"needs a tap\", deep red is End. No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Orange Rule",
+        "body": "Apple's orange Pause is not used. Pause is grey, like every other non-start control.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pure Black Rule",
+        "body": "The ground is #000, overriding any \"no pure black\" guidance: dark stages, OLED panels, nothing glowing around the digits.",
+        "section": "colors"
+      },
+      {
+        "name": "The Device Font Rule",
+        "body": "system-ui only. No downloaded fonts, no SF files, no monospace outside the debug overlay.",
+        "section": "typography"
+      },
+      {
+        "name": "The Measured Cell Rule",
+        "body": "Every stage digit sits in a fixed-width cell measured from the device font at runtime (digit, colon and minus widths in em). The line is sized against its widest form with the minus cell reserved, so the font size never changes at zero and no digit ever shifts.",
+        "section": "typography"
+      },
+      {
+        "name": "The Notch Dim Rule",
+        "body": "iOS dims a band about 85px deep along the notch edge in the home-screen app. Content on that edge moves a further `notch-dim` (2.5rem) inward: the top of the Presets screen in portrait, and the corner controls on the notch side of the stage.",
+        "section": "layout"
+      },
+      {
+        "name": "The Quiet Stage Rule",
+        "body": "While running, the stage shows nothing but the digits (and an amber pill if something threatens the show). Controls return only on a long press.",
+        "section": "layout"
+      },
+      {
+        "name": "The Opaque Fill Rule",
+        "body": "No glass, no backdrop blur, no drop shadows. Floating things (capsules, the step menu) are opaque menu-grey.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "Do keep every ground #000 and the digits #fff bold system-ui with tabular figures.",
-      "Do size digits from measured cells with the minus reserved, and keep the control band reserved below them.",
-      "Do put glass only on controls floating over the stage, using the one recipe and its Safari blur and fallback.",
-      "Do use Phosphor icons: fill for play and pause, bold for X.",
-      "Do give every motion a reduced-motion variant (fade instead of shake, scale or glide).",
-      "Do report anything that threatens the show in an amber pill with black text."
+      "Do keep every background stage-black (#000).",
+      "Do use start-green on start-green-fill only for actions that start counting.",
+      "Do use the round double-ring button for every primary control, grey unless it starts.",
+      "Do size stage digits from measured cells and reserve the minus cell, so nothing moves at zero.",
+      "Do move content on the notch edge in by notch-dim, and size screens with the full-screen height.",
+      "Do give every animation a reduced-motion variant (a fade).",
+      "Do use Phosphor icons only: X bold, ArrowCounterClockwise bold, CaretRight bold, Play fill."
     ],
     "donts": [
-      "Don't use bright red for anything but overtime digits, or deep red for anything but End.",
-      "Don't add rings, progress bars or labels around the time.",
-      "Don't put glass on the preset tiles or give glass an outer drop shadow.",
-      "Don't let the digit size or position change when a digit, the hour or the minus sign changes.",
-      "Don't use SF Symbols or downloaded SF fonts.",
-      "Don't add sound or haptics."
+      "Don't use orange anywhere; Pause is grey.",
+      "Don't use overtime-red, caution-amber or end-red outside their one meaning.",
+      "Don't use glass, backdrop blur or drop shadows; floating controls are opaque fills.",
+      "Don't load web fonts or SF fonts, or use monospace outside the debug overlay.",
+      "Don't show controls, rings or labels on the running stage.",
+      "Don't use SF Symbols."
     ]
   }
 }
