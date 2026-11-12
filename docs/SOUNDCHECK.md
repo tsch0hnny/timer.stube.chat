@@ -17,8 +17,9 @@
    - **storage** ok.
 
    Close the overlay.
-4. **Start a timer (30 s).** Check that **Start right away is off**. Tap the set length in the
-   Presets list (or dial it on the wheel and tap **Set**). The paused landscape view opens. If the
+4. **Start a timer (30 s).** Check that **Count up is on** (the band reads the time elapsed) and
+   **Start right away is off**. Tap the set length in the Presets list (or dial it on the wheel and
+   tap **Set**). The paused landscape view opens at 00:00. If the
    amber "Tap once to keep the screen on" pill shows, tap the screen until it disappears (iOS
    sometimes refuses the first tap after opening the app). **No amber pill may stay.** Tap the green
    **Start** and watch it count for a few seconds.
@@ -27,7 +28,8 @@
    lock comes back by itself after unlocking; if the pill does show, tap until it disappears.)
 6. **Position and read (1 min).** Put the phone where it will sit on the synth, with the stage lights
    on. Check the time is readable from where everyone plays.
-7. **Reset for the set (20 s).** Tap ✕ → End, then tap the set length again so it waits paused. At
+7. **Reset for the set (20 s).** Tap ✕ → End, then tap the set length again so it waits paused at
+   00:00. At
    the first note: the green **Start**.
 
 Frozen gig version: `________` (filled in Friday night)

@@ -3,6 +3,7 @@ import { MINUTE, phase as phaseOf, select as selectCore, start, step as stepCore
 import { display as displayOf } from '#shared/timer/display'
 import { createTicker } from '#shared/timer/ticker'
 import { createLocalStore, withDefaults, withPreset, withoutPreset, type KeyValue, type Preset, type StepMinutes } from '#shared/storage/store'
+import { FEATURES } from '~/features'
 import { useDebugLog } from './useDebugLog'
 import { useWakeLock } from './useWakeLock'
 
@@ -19,8 +20,8 @@ function safeLocalStorage(): KeyValue | null {
 
 const describe = (s: TimerState) =>
   s.status === 'idle' ? 'idle'
-    : s.status === 'paused' ? `paused ${Math.round(s.remainingMs / 1000)}s left`
-      : `running, ends ${new Date(s.endAt).toISOString()}`
+    : (s.status === 'paused' ? `paused ${Math.round(s.remainingMs / 1000)}s left` : `running, ends ${new Date(s.endAt).toISOString()}`)
+      + (s.countUp ? ' (count-up)' : '')
 
 let instance: ReturnType<typeof create> | null = null
 
@@ -85,7 +86,7 @@ function create() {
      */
     select(durationMs: number) {
       wakeLock.want(true, 'preset tapped')
-      const paused = selectCore(durationMs)
+      const paused = selectCore(durationMs, FEATURES.countUp && prefs.value.countUp)
       const label = `${Math.round(durationMs / 1000)} s`
       if (prefs.value.startOnTap) commit(start(paused, Date.now()), `select ${label} and start`)
       else commit(paused, `select ${label}`)
@@ -133,11 +134,17 @@ function create() {
       store.savePrefs(prefs.value)
       log('prefs', `start right away ${on ? 'on' : 'off'}`)
     },
-    /** The stage's reset: back to the full length, paused, ready for the next first note. */
+    /** Applies to the next timer opened; a timer already open keeps its direction. */
+    setCountUp(on: boolean) {
+      prefs.value = { ...prefs.value, countUp: on }
+      store.savePrefs(prefs.value)
+      log('prefs', `count up ${on ? 'on' : 'off'}`)
+    },
+    /** The stage's reset: back to the full length (00:00 counting up), paused, ready for the next first note. */
     reset() {
       const s = state.value
       if (s.status === 'idle') return
-      commit(selectCore(s.durationMs), 'reset')
+      commit(selectCore(s.durationMs, s.countUp === true), 'reset')
     },
     exit() {
       commit(clear(), 'exit')

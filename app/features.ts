@@ -12,6 +12,11 @@ export const FEATURES = {
   stepPicker: true,
   /** 4th to cut: the shake at zero (the red and the minus sign stay). */
   shake: true,
+  /**
+   * Not in the cut order: the band rehearses with a clock that counts up. Off hides the "Count up"
+   * switch and every timer counts down, exactly as c18efb0 did.
+   */
+  countUp: true,
 } as const
 
 /** Which way the landscape timer is rotated inside a portrait viewport. Set from the device spike. */

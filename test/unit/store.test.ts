@@ -58,6 +58,27 @@ describe('restoring each state after a reload', () => {
   })
 })
 
+describe('count-up timers survive a reload; older saves stay countdowns', () => {
+  it('running count-up comes back counting up from the stored end time', () => {
+    const s = start(select(45 * MINUTE, true), T0)
+    const r = reload(memoryKV(), s, T0 + 5 * MINUTE)
+    expect(r).toEqual(s)
+    expect(display(r, T0 + 12 * MINUTE + 30 * SECOND)!.text).toBe('12:30')
+  })
+  it('paused count-up keeps its elapsed time', () => {
+    const s = pause(start(select(45 * MINUTE, true), T0), T0 + 12 * MINUTE)
+    expect(display(reload(memoryKV(), s), T0 + HOUR)!.text).toBe('12:00')
+  })
+  it('a timer saved without the field (c18efb0 and earlier), or with junk in it, is a countdown', () => {
+    const kv = memoryKV()
+    const old = { v: 1, savedAt: T0, state: { status: 'running', durationMs: 45 * MINUTE, endAt: T0 + 45 * MINUTE, hours: false } }
+    kv.data.set('timer.v1.state', JSON.stringify(old))
+    expect(createLocalStore(kv).loadTimer()).toEqual(old.state)
+    kv.data.set('timer.v1.state', JSON.stringify({ ...old, state: { ...old.state, countUp: 'yes' } }))
+    expect('countUp' in createLocalStore(kv).loadTimer()).toBe(false)
+  })
+})
+
 describe('bad or foreign data never crashes the app', () => {
   const cases: Array<[string, string]> = [
     ['not JSON', '{oops'],
@@ -126,6 +147,16 @@ describe('presets and prefs live behind the same interface', () => {
     }
     kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { wheelMs: MAX_ABS_MS } }))
     expect(createLocalStore(kv).loadPrefs().wheelMs).toBe(MAX_ABS_MS)
+  })
+  it('remembers "Count up", off by default; prefs saved before it existed keep everything else', () => {
+    const kv = memoryKV()
+    expect(createLocalStore(kv).loadPrefs().countUp).toBe(false)
+    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, countUp: true })
+    expect(createLocalStore(kv).loadPrefs().countUp).toBe(true)
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, startOnTap: true, wheelMs: 20 * MINUTE } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5, startOnTap: true, wheelMs: 20 * MINUTE })
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, countUp: 'on' } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5 })
   })
   it('does not touch the spike’s keys', () => {
     const kv = memoryKV()

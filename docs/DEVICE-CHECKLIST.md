@@ -71,6 +71,18 @@ alongside other work).
 5. **Zero and overtime.** Step down to about 00:20 (−5 min a few times, then −1 min), and wait. At zero:
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it
    keeps counting −00:01, −00:02 …?**
+5a. **Count up** (added 13 Nov: the band rehearses with a clock that counts up). Tap ✕ → End and
+   turn **Count up** on. Dial 0 hours, 0 min, 20 sec and tap **Set**.
+   - **It opens at 00:00, paused, with the reset arrow greyed out?** Tap **Start**: **00:01, 00:02 …
+     and at 00:20 red and one shake, then 00:21, 00:22 … in red, with no minus?**
+   - Tap +1 min: **the digits jump a minute forward (about 01:25) and stay red?** Tap −1 min twice:
+     **00:00 at most, white again, still counting?**
+   - Lock for 30 s, unlock: **the right time?** Swipe the app away and reopen it: **straight back
+     into the count-up at the right time?**
+   - Reset arrow → Reset: **00:00, paused?**
+   - Optional, with a second phone: start the same length counting up on one and counting down on
+     the other in the same second. **The two numbers always add up to the length?**
+   - Tap ✕ → End, turn **Count up** off and tap 15:00: **15:00, counting down as before?** Tap ✕.
 6. **Lock and unlock.** While it is running, lock with the side button, wait 30 s, then unlock.
    **Is the time right? Is there no amber pill?** (The spike showed the lock coming back by itself
    after unlocking.) If the pill shows, tap until it disappears.
@@ -113,5 +125,5 @@ alongside other work).
 ## Pass rule
 
 The candidate passes when every bold answer is "yes" and the 60-minute gap is at most 1 s. Any "no"
-in steps 3, 6, 7, 8 or 10 blocks the release. Those steps cover the never-cut list: correct time,
+in steps 3, 5a, 6, 7, 8 or 10 blocks the release. Those steps cover the never-cut list: correct time,
 digits that don't jump, the screen staying on, surviving reload and lock.

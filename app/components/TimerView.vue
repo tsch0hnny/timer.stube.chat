@@ -21,7 +21,8 @@ const controlsVisible = computed(() => !isRunning.value || shownWhileRunning.val
 const hint = ref(false)
 const confirmExit = ref(false)
 const confirmReset = ref(false)
-/** Nothing to reset: paused at the full length. */
+const countUp = computed(() => timer.state.value.status !== 'idle' && timer.state.value.countUp === true)
+/** Nothing to reset: paused at the full length (00:00 counting up). */
 const atFullLength = computed(() => {
   const s = timer.state.value
   return s.status === 'paused' && s.remainingMs === s.durationMs
@@ -158,6 +159,8 @@ const display = timer.display
             v-if="display"
             :text="display.text"
             :negative="display.negative"
+            :over="display.over"
+            :count-up="countUp"
             :shake-key="timer.zeroCrossings.value"
             :shake="FEATURES.shake"
             fit
@@ -195,7 +198,7 @@ const display = timer.display
               <button
                 type="button"
                 class="btn-round exit-btn"
-                aria-label="Reset to the full length"
+                :aria-label="countUp ? 'Reset to zero' : 'Reset to the full length'"
                 :disabled="atFullLength"
                 data-testid="reset"
                 @click="onReset"

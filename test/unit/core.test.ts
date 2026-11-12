@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   HOUR, MINUTE, SECOND, MAX_ABS_MS,
-  idle, select, start, pause, toggle, step, clear, remainingMs, phase, type TimerState,
+  idle, select, start, pause, toggle, step, clear, remainingMs, elapsedMs, phase, type TimerState,
 } from '../../shared/timer/core'
 
 const T0 = Date.UTC(2026, 10, 14, 20, 0, 0) // Sat 14 Nov 2026, 20:00 UTC
@@ -144,5 +144,65 @@ describe('hours format is sticky (keep hours format, default ON)', () => {
   })
   it('clear returns to idle', () => {
     expect(clear()).toEqual(idle)
+  })
+})
+
+describe('count-up: the same timer, read as time elapsed', () => {
+  it('opens paused at 00:00 of its length; a countdown carries no countUp field at all', () => {
+    expect(select(45 * MINUTE, true)).toEqual({ status: 'paused', durationMs: 45 * MINUTE, remainingMs: 45 * MINUTE, hours: false, countUp: true })
+    expect(elapsedMs(select(45 * MINUTE, true), T0)).toBe(0)
+    expect('countUp' in select(45 * MINUTE)).toBe(false)
+    expect('countUp' in start(select(45 * MINUTE), T0)).toBe(false)
+  })
+  it('start, pause and resume keep the direction and the elapsed time', () => {
+    let s = start(select(45 * MINUTE, true), T0)
+    expect(s).toMatchObject({ status: 'running', endAt: T0 + 45 * MINUTE, countUp: true })
+    expect(elapsedMs(s, T0 + 12 * MINUTE + 300)).toBe(12 * MINUTE + 300)
+    s = pause(s, T0 + 12 * MINUTE + 300)
+    expect(s).toMatchObject({ status: 'paused', countUp: true })
+    expect(elapsedMs(s, T0 + HOUR)).toBe(12 * MINUTE + 300)
+    s = toggle(s, T0 + HOUR)
+    expect(s).toMatchObject({ status: 'running', countUp: true })
+    expect(elapsedMs(s, T0 + HOUR + MINUTE)).toBe(13 * MINUTE + 300)
+  })
+  it('the end comes at the length, and the count goes on past it', () => {
+    const s = start(select(45 * MINUTE, true), T0)
+    expect(phase(s, T0 + 45 * MINUTE - 1)).toBe('running')
+    expect(phase(s, T0 + 45 * MINUTE)).toBe('overtime')
+    expect(elapsedMs(s, T0 + 46 * MINUTE)).toBe(46 * MINUTE)
+  })
+  it('± moves the time shown and leaves the end at the length, running and paused', () => {
+    let s = start(select(45 * MINUTE, true), T0)
+    const now = T0 + 12 * MINUTE + 30 * SECOND
+    s = step(s, MINUTE, now)
+    expect(elapsedMs(s, now)).toBe(13 * MINUTE + 30 * SECOND)
+    expect(s.status !== 'idle' && s.durationMs).toBe(45 * MINUTE)
+    s = step(pause(s, now), -2 * MINUTE, now)
+    expect(s).toMatchObject({ status: 'paused', durationMs: 45 * MINUTE, countUp: true })
+    expect(elapsedMs(s, now)).toBe(11 * MINUTE + 30 * SECOND)
+  })
+  it('never below 00:00: −1 at 00:30 stops at 00:00', () => {
+    const s = step(start(select(45 * MINUTE, true), T0), -MINUTE, T0 + 30 * SECOND)
+    expect(elapsedMs(s, T0 + 30 * SECOND)).toBe(0)
+    expect(elapsedMs(s, T0 + 31 * SECOND)).toBe(SECOND)
+  })
+  it('± across the end in both directions', () => {
+    let s = start(select(15 * MINUTE, true), T0)
+    const now = T0 + 14 * MINUTE + 30 * SECOND
+    s = step(s, MINUTE, now)
+    expect(phase(s, now)).toBe('overtime')
+    expect(elapsedMs(s, now)).toBe(15 * MINUTE + 30 * SECOND)
+    s = step(s, -MINUTE, now)
+    expect(phase(s, now)).toBe('running')
+  })
+  it('the hours format follows the length, and turns on (and stays) past 60:00 elapsed', () => {
+    expect(select(90 * MINUTE, true).hours).toBe(true)
+    let s = step(select(45 * MINUTE, true), 61 * MINUTE, T0)
+    expect(s.status === 'paused' && s.hours).toBe(true)
+    s = step(s, -30 * MINUTE, T0)
+    expect(s.status === 'paused' && s.hours).toBe(true)
+  })
+  it('elapsed is null when idle', () => {
+    expect(elapsedMs(idle, T0)).toBeNull()
   })
 })

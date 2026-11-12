@@ -285,7 +285,7 @@
       },
       "body": {
         "displayName": "Body",
-        "purpose": "The grouped \"Start right away\" cell."
+        "purpose": "The grouped \"Start right away\" and \"Count up\" cells."
       },
       "notice": {
         "displayName": "Notice",

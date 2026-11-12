@@ -101,3 +101,56 @@ describe('nextTickDelay: the tick lands on the timer’s own second boundary', (
     }
   })
 })
+
+describe('count-up display', () => {
+  it('counts up with floor: 00:00 for the first second, the length itself at the end, no minus', () => {
+    const s = start(select(MINUTE, true), T0)
+    expect(display(s, T0)).toMatchObject({ text: '00:00', negative: false, over: false, phase: 'running' })
+    expect(display(s, T0 + 999)!.text).toBe('00:00')
+    expect(display(s, T0 + 1000)!.text).toBe('00:01')
+    expect(display(s, T0 + MINUTE - 1)).toMatchObject({ text: '00:59', over: false })
+    expect(display(s, T0 + MINUTE)).toMatchObject({ text: '01:00', negative: false, over: true, phase: 'overtime' })
+    expect(display(s, T0 + MINUTE + 2 * MINUTE + 15 * SECOND)).toMatchObject({ text: '03:15', negative: false, over: true })
+  })
+  it('changes digits at the same moments as the countdown of the same length', () => {
+    const up = start(select(3 * MINUTE, true), T0)
+    const down = start(select(3 * MINUTE), T0)
+    for (let t = T0; t < T0 + 4 * MINUTE; t += 250) {
+      const [u, d] = [display(up, t)!.text, display(down, t)!.text]
+      const secs = (x: string) => x.replace('−', '').split(':').reduce((a, b) => a * 60 + Number(b), 0)
+      if (t < T0 + 3 * MINUTE) expect(secs(u) + secs(d), `${u} + ${d}`).toBe(180) // they always add up to the length
+      expect(nextTickDelay(up, t)).toBe(nextTickDelay(down, t))
+    }
+  })
+  it('the countdown reports over exactly when it is negative', () => {
+    const s = start(select(MINUTE), T0)
+    expect(display(s, T0 + MINUTE - 1)).toMatchObject({ negative: false, over: false })
+    expect(display(s, T0 + MINUTE)).toMatchObject({ negative: true, over: true })
+  })
+  it('a 1:30:00 length counts up in H:MM:SS from 0:00:00', () => {
+    const s = start(select(90 * MINUTE, true), T0)
+    expect(display(s, T0)!.text).toBe('0:00:00')
+    expect(display(s, T0 + 75 * MINUTE)!.text).toBe('1:15:00')
+    expect(display(s, T0 + 91 * MINUTE)).toMatchObject({ text: '1:31:00', over: true })
+  })
+  it('a 45:00 length runs on past 60:00 in H:MM:SS', () => {
+    const s = start(select(45 * MINUTE, true), T0)
+    expect(display(s, T0 + 60 * MINUTE)!.text).toBe('60:00')
+    expect(display(s, T0 + 60 * MINUTE + SECOND)!.text).toBe('1:00:01')
+  })
+  it('every delay lands where the displayed text changes, never before', () => {
+    const s = start(select(2 * MINUTE, true), T0)
+    let now = T0 + 137
+    let prev = display(s, now)!.text
+    for (let i = 0; i < 300; i++) {
+      const d = nextTickDelay(s, now)!
+      expect(d).toBeGreaterThan(0)
+      expect(d).toBeLessThanOrEqual(1000)
+      expect(display(s, now + d - 1)!.text).toBe(prev)
+      now += d
+      const next = display(s, now)!.text
+      expect(next).not.toBe(prev)
+      prev = next
+    }
+  })
+})

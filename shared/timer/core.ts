@@ -7,6 +7,11 @@
  *  - paused stores the remaining milliseconds (negative when paused in overtime).
  * "Overtime" is not stored; it is a running timer whose end time has passed.
  *
+ * Count-up (`countUp: true`, the band's choice) is the same timer read the other way: the display
+ * shows the time elapsed, durationMs − remaining, and the end is still `endAt`. Only the ± steps
+ * differ (they move the elapsed time, see step). Countdown states carry no countUp field at all, so
+ * they are stored exactly as before.
+ *
  * Why the wall clock: it is the only clock that survives phone lock, suspend, reload and the
  * app being killed. performance.now() pauses while the device sleeps, so it cannot be trusted
  * across a lock. Consequence: if the system clock is changed mid-run, the timer follows it
@@ -23,8 +28,8 @@ export const HOURS_FORMAT_ABOVE_MS = HOUR
 
 export type TimerState =
   | { readonly status: 'idle' }
-  | { readonly status: 'paused'; readonly durationMs: number; readonly remainingMs: number; readonly hours: boolean }
-  | { readonly status: 'running'; readonly durationMs: number; readonly endAt: number; readonly hours: boolean }
+  | { readonly status: 'paused'; readonly durationMs: number; readonly remainingMs: number; readonly hours: boolean; readonly countUp?: true }
+  | { readonly status: 'running'; readonly durationMs: number; readonly endAt: number; readonly hours: boolean; readonly countUp?: true }
 
 export type PausedState = Extract<TimerState, { status: 'paused' }>
 export type RunningState = Extract<TimerState, { status: 'running' }>
@@ -43,31 +48,47 @@ export function shownSeconds(remaining: number): number {
 /** Keep hours format: once a timer shows more than 60:00 it stays H:MM:SS. */
 const stickyHours = (hours: boolean, remaining: number) => hours || shownSeconds(remaining) * SECOND > HOURS_FORMAT_ABOVE_MS
 
-/** Tap on a preset: the timer view opens paused at the full duration. */
-export function select(durationMs: number): PausedState {
+/** The countUp field as stored: present (true) on count-up timers only. */
+const upField = (s: { countUp?: true }) => (s.countUp ? { countUp: true as const } : {})
+
+/**
+ * Tap on a preset: the timer view opens paused at the full duration (counting down) or at 00:00
+ * (counting up). The hours format follows the length either way.
+ */
+export function select(durationMs: number, countUp = false): PausedState {
   if (!Number.isFinite(durationMs) || durationMs <= 0 || durationMs > MAX_ABS_MS) {
     throw new RangeError(`invalid timer duration: ${durationMs}`)
   }
-  return { status: 'paused', durationMs, remainingMs: durationMs, hours: durationMs > HOURS_FORMAT_ABOVE_MS }
+  const s: PausedState = { status: 'paused', durationMs, remainingMs: durationMs, hours: durationMs > HOURS_FORMAT_ABOVE_MS }
+  return countUp ? { ...s, countUp: true } : s
 }
 
 export function start(s: TimerState, now: number): TimerState {
   if (s.status !== 'paused') return s
-  return { status: 'running', durationMs: s.durationMs, endAt: now + s.remainingMs, hours: s.hours }
+  return { status: 'running', durationMs: s.durationMs, endAt: now + s.remainingMs, hours: s.hours, ...upField(s) }
 }
 
 export function pause(s: TimerState, now: number): TimerState {
   if (s.status !== 'running') return s
-  return { status: 'paused', durationMs: s.durationMs, remainingMs: s.endAt - now, hours: s.hours }
+  return { status: 'paused', durationMs: s.durationMs, remainingMs: s.endAt - now, hours: s.hours, ...upField(s) }
 }
 
 export function toggle(s: TimerState, now: number): TimerState {
   return s.status === 'running' ? pause(s, now) : start(s, now)
 }
 
-/** ± buttons. Works while running and paused, and across zero in both directions. */
+/**
+ * ± buttons. Works while running and paused, and across zero in both directions. Counting up, the
+ * step moves the time shown (12:30 → 13:30) and the end stays at the length; never below 00:00.
+ */
 export function step(s: TimerState, deltaMs: number, now: number): TimerState {
   if (s.status === 'idle' || !Number.isFinite(deltaMs)) return s
+  if (s.countUp) {
+    const elapsed = Math.max(0, Math.min(MAX_ABS_MS, s.durationMs - remainingMs(s, now)! + deltaMs))
+    const remaining = s.durationMs - elapsed
+    const hours = s.hours || Math.floor(elapsed / SECOND) * SECOND > HOURS_FORMAT_ABOVE_MS
+    return s.status === 'paused' ? { ...s, remainingMs: remaining, hours } : { ...s, endAt: now + remaining, hours }
+  }
   if (s.status === 'paused') {
     const remainingMs = clamp(s.remainingMs + deltaMs)
     return { ...s, remainingMs, hours: stickyHours(s.hours, remainingMs) }
@@ -84,6 +105,12 @@ export function clear(): TimerState {
 export function remainingMs(s: TimerState, now: number): number | null {
   if (s.status === 'idle') return null
   return s.status === 'paused' ? s.remainingMs : s.endAt - now
+}
+
+/** Elapsed milliseconds at `now` (never below 0); null when idle. What a count-up timer shows. */
+export function elapsedMs(s: TimerState, now: number): number | null {
+  const r = remainingMs(s, now)
+  return r === null || s.status === 'idle' ? null : Math.max(0, s.durationMs - r)
 }
 
 export function phase(s: TimerState, now: number): Phase {

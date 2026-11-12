@@ -103,21 +103,36 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
           </button>
         </div>
       </template>
-      <label class="cell">
-        <span>Start right away</span>
-        <!-- The visible switch is plain spans; the checkbox is an invisible tap area on top, so no
-             browser's own form-control rendering (iOS sizes checkboxes its own way) can bend it. -->
-        <span class="switch">
-          <input
-            type="checkbox"
-            role="switch"
-            :checked="startOnTap"
-            data-testid="start-on-tap"
-            @change="timer.setStartOnTap(($event.target as HTMLInputElement).checked)"
-          >
-          <span class="track" aria-hidden="true"><span class="knob" /></span>
-        </span>
-      </label>
+      <div class="group">
+        <label class="cell">
+          <span>Start right away</span>
+          <!-- The visible switch is plain spans; the checkbox is an invisible tap area on top, so no
+               browser's own form-control rendering (iOS sizes checkboxes its own way) can bend it. -->
+          <span class="switch">
+            <input
+              type="checkbox"
+              role="switch"
+              :checked="startOnTap"
+              data-testid="start-on-tap"
+              @change="timer.setStartOnTap(($event.target as HTMLInputElement).checked)"
+            >
+            <span class="track" aria-hidden="true"><span class="knob" /></span>
+          </span>
+        </label>
+        <label v-if="FEATURES.countUp" class="cell">
+          <span>Count up</span>
+          <span class="switch">
+            <input
+              type="checkbox"
+              role="switch"
+              :checked="timer.prefs.value.countUp"
+              data-testid="count-up"
+              @change="timer.setCountUp(($event.target as HTMLInputElement).checked)"
+            >
+            <span class="track" aria-hidden="true"><span class="knob" /></span>
+          </span>
+        </label>
+      </div>
     </div>
 
     <div class="listcol">
@@ -198,18 +213,31 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 }
 .buttons .btn-round { width: 5.25rem; height: 5.25rem; }
 
-/* One grouped cell, as the iOS timer's "When Timer Ends" row. */
+/* Grouped cells, as the iOS timer's "When Timer Ends" row; a hairline between them, inset to the text. */
+.group {
+  border-radius: 0.75rem;
+  background: var(--tile);
+  overflow: hidden;
+}
 .cell {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   min-height: 3.25rem;
   padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  background: var(--tile);
   font: 400 1.0625rem / 1.2 system-ui, -apple-system, sans-serif;
   cursor: pointer;
+}
+.cell + .cell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1rem;
+  right: 0;
+  height: 0.5px;
+  background: var(--separator);
 }
 .switch { position: relative; flex: none; width: 51px; height: 31px; }
 .switch input {
@@ -311,8 +339,10 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .heading { margin-top: 0.5rem; }
   .buttons { margin: 0.75rem 0.25rem 1rem; }
 }
-/* Where the wheel column fits the height, it stays put and only the list scrolls. */
-@media (orientation: landscape) and (min-height: 360px) {
+/* Where the wheel column fits the height, it stays put and only the list scrolls. With both switches
+   it is 386 px tall up to 500 px (5-row wheel) and 454 px above, from 24 px down, plus up to 21 px
+   of home indicator: phones in landscape scroll it with the list. */
+@media (orientation: landscape) and (min-height: 440px) {
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {

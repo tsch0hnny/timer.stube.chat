@@ -127,7 +127,7 @@ test('wheel columns scroll vertically only: a sideways swipe or wheel does not m
 test('"Start right away": the whole switch is the tap target, and a tap on the words works too', async ({ page }) => {
   await openApp(page)
   const input = page.getByTestId('start-on-tap')
-  const sw = (await page.locator('.switch').boundingBox())!
+  const sw = (await page.locator('.switch', { has: input }).boundingBox())!
   const box = (await input.boundingBox())!
   expect([Math.round(box.width), Math.round(box.height)]).toEqual([Math.round(sw.width), Math.round(sw.height)])
   await page.mouse.click(sw.x + sw.width - 6, sw.y + sw.height / 2) // the right end of the track

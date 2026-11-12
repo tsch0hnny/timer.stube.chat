@@ -7,6 +7,10 @@ import { lineEm, measureCellWidths, type CellWidths } from '~/utils/digitMetrics
 const props = defineProps<{
   text: string
   negative: boolean
+  /** Past the end: red. Counting down the same as negative; counting up from the length on. */
+  over: boolean
+  /** Counting up: the time shown is elapsed, and there is never a minus to make room for. */
+  countUp?: boolean
   /** Bumps on every live crossing into overtime: plays the shake once. */
   shakeKey: number
   shake: boolean
@@ -33,11 +37,13 @@ const style = computed(() => ({
   '--cell-colon': `${widths.value.colon}em`,
   '--cell-minus': `${widths.value.minus}em`,
   // Size against the widest this format can get (minus included), so the size never changes at zero.
-  '--line-em': String(lineEm(props.text, widths.value, RESERVE_MINUS_CELL)),
+  // Counting up never shows a minus, so its digits get that room.
+  '--line-em': String(lineEm(props.text, widths.value, RESERVE_MINUS_CELL && !props.countUp)),
   fontFamily: font.family,
   fontWeight: String(font.weight),
 }))
-const label = computed(() => (props.negative ? `${props.text.slice(1)} over` : `${props.text} left`))
+const label = computed(() =>
+  props.countUp ? `${props.text} elapsed` : props.negative ? `${props.text.slice(1)} over` : `${props.text} left`)
 
 /*
  * The line is centred, so when the minus sign appears (or goes) every digit would shift by half a
@@ -91,7 +97,7 @@ watch(
   <div
     ref="root"
     class="digits"
-    :class="{ fit, negative }"
+    :class="{ fit, negative, over }"
     :style="style"
     role="timer"
     :aria-label="label"
@@ -124,7 +130,7 @@ watch(
      set by the box) when the line is centred, on any screen shape; on a phone the width wins. */
   font-size: min(calc(100cqw / var(--line-em)), 92cqh, calc((100cqh - 2 * var(--band, 0px)) / 0.76));
 }
-.digits.negative { color: var(--overtime); }
+.digits.over { color: var(--overtime); }
 .line { display: inline-flex; }
 .cell { display: inline-block; text-align: center; }
 .cell.digit { width: var(--cell-digit); }

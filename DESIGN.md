@@ -259,10 +259,10 @@ Surfaces are flat and opaque. The earlier liquid-glass treatment was removed wit
 A black-and-white stage with four signal colours, each owning exactly one meaning.
 
 ### Primary
-- **Start Green** (start-green on start-green-fill): Apple's tinted start button. The stage's Start label, the Presets screen's Set-become-Start button and the green play circles in the list, and the "Start right away" switch when on. Green appears on the Presets screen only when "Start right away" is on; when it is off, the wheel's button reads "Set" in grey and the rows carry grey chevrons.
+- **Start Green** (start-green on start-green-fill): Apple's tinted start button. The stage's Start label, the Presets screen's Set-become-Start button and the green play circles in the list, and the switches when on (the iOS switch, the one place green reads "on"). Apart from the switches, green appears on the Presets screen only when "Start right away" is on; when it is off, the wheel's button reads "Set" in grey and the rows carry grey chevrons.
 
 ### Secondary
-- **Overtime Red** (overtime-red): the stage digits once the countdown passes zero, and nothing else.
+- **Overtime Red** (overtime-red): the stage digits once the countdown passes zero, or once a count-up reaches its length, and nothing else.
 - **Caution Amber** (caution-amber, black text on it): the status pill that says the app needs a tap (wake lock lost, storage unavailable). Deliberately not red, so it cannot be misread as overtime.
 - **End Red** (end-red, white text on it): destructive actions only: the End and Reset buttons in the stage's inline confirms and the delete capsule behind a swiped preset.
 
@@ -272,7 +272,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 - **Secondary Grey** (secondary-grey): the words under preset times, the version label, debug labels.
 - **Button Grey** (button-grey): every round button that is not start (reset, Set, Pause, ±step, exit).
 - **Menu Grey** (menu-grey): the step menu, the hint and exit-confirm capsules, the update capsule.
-- **Cell Grey** (cell-grey): the grouped "Start right away" cell and a pressed preset row.
+- **Cell Grey** (cell-grey): the grouped "Start right away" and "Count up" cells and a pressed preset row.
 - **Separator Grey** (separator-grey): 0.5px hairlines between list rows and menu choices.
 - **Chevron Grey** (chevron-grey): the row chevrons when presets only set.
 - **Quiet Fill** (quiet-fill): the wheel's selection band and the off switch track.
@@ -356,8 +356,8 @@ Apple's round timer button, tactile and plain.
 - **Menu:** opaque menu-grey, 0.875rem corners, 7.5rem wide, 3rem choices (15, 10, 5, 1 min) split by hairlines. The choice under the finger lights menu-highlight and goes 600; it grows from the button (opacity 160ms, scaleY from 0.6 over 200ms). Reduced motion: a 120ms fade only.
 
 ### Grouped Cell and Switch
-- **Cell:** cell-grey, 0.75rem corners, at least 3.25rem tall, 0.5rem 1rem padding: the "Start right away" row, as the iOS timer's "When Timer Ends" row.
-- **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green, because turning it on makes taps start. Knob slides over 220ms.
+- **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in one cell-grey group with 0.75rem corners: "Start right away" and "Count up", as the iOS timer's "When Timer Ends" row. A separator-grey hairline between them, inset to the text.
+- **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green (as every iOS switch). Knob slides over 220ms.
 
 ### Preset List (Recents format)
 - Each row: a big light tabular time over grey words ("1 hr, 15 min", "42 min, 15 secs"), with the action at the right: a grey chevron when tapping sets, a 2.5rem green play circle when tapping starts. Both share one 2.5rem slot and swap in place (shrink and fade, grow in; each row 18ms after the one above). Pressed rows take cell-grey. Hairline separators inset to the text. One row per length, sorted by length.
@@ -374,6 +374,7 @@ Apple's round timer button, tactile and plain.
 
 ### Stage Digits (signature)
 - One line of fixed cells keyed from the right, so seconds stay the same element when an hour or the minus appears. At zero: one decaying 620ms "no" shake, the colour turns overtime-red, the line glides half a minus cell to its new centre over 560ms while the minus fades in. Reduced motion: no shake, no glide, a 220ms fade.
+- Counting up: the line shows the time elapsed and never a minus, so no minus cell is reserved and the digits are about 15% larger. At the length: the same shake and overtime-red, no glide (nothing changes width).
 
 ## Do's and Don'ts
 

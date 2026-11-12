@@ -38,8 +38,10 @@ export interface Prefs {
   startOnTap: boolean
   /** The last length set with the wheel; the wheel opens on it. Whole seconds, 1 s to 9:59:59. */
   wheelMs: number
+  /** Timers count up from 00:00 to their length instead of down (the band rehearses that way). */
+  countUp: boolean
 }
-export const DEFAULT_PREFS: Prefs = Object.freeze({ stepMinutes: 1, startOnTap: false, wheelMs: 15 * MINUTE })
+export const DEFAULT_PREFS: Prefs = Object.freeze({ stepMinutes: 1, startOnTap: false, wheelMs: 15 * MINUTE, countUp: false })
 
 export const BUILT_IN_PRESETS: readonly Preset[] = Object.freeze(
   Array.from({ length: 12 }, (_, i) => Object.freeze({ id: `builtin-${(i + 1) * 15}`, durationMs: (i + 1) * 15 * MINUTE, builtIn: true })),
@@ -90,11 +92,13 @@ export function parseTimer(raw: string): TimerState | string {
   if (s.status === 'idle') return idle
   const okDuration = finite(s.durationMs) && s.durationMs > 0 && s.durationMs <= MAX_ABS_MS
   if (!okDuration || typeof s.hours !== 'boolean') return `timer: bad ${String(s.status)} state`
+  // Saved before count-up existed, or anything but true: a countdown, as it always was.
+  const up = s.countUp === true ? { countUp: true as const } : {}
   if (s.status === 'paused' && finite(s.remainingMs) && Math.abs(s.remainingMs) <= MAX_ABS_MS) {
-    return { status: 'paused', durationMs: s.durationMs as number, remainingMs: s.remainingMs, hours: s.hours }
+    return { status: 'paused', durationMs: s.durationMs as number, remainingMs: s.remainingMs, hours: s.hours, ...up }
   }
   if (s.status === 'running' && finite(s.endAt) && s.endAt > 0) {
-    return { status: 'running', durationMs: s.durationMs as number, endAt: s.endAt, hours: s.hours }
+    return { status: 'running', durationMs: s.durationMs as number, endAt: s.endAt, hours: s.hours, ...up }
   }
   return `timer: bad ${String(s.status)} state`
 }
@@ -146,7 +150,7 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
       const raw = read(KEYS.prefs)
       if (raw === null) return { ...DEFAULT_PREFS }
       try {
-        const o = JSON.parse(raw) as { v?: number; prefs?: { stepMinutes?: unknown; startOnTap?: unknown; wheelMs?: unknown } }
+        const o = JSON.parse(raw) as { v?: number; prefs?: { stepMinutes?: unknown; startOnTap?: unknown; wheelMs?: unknown; countUp?: unknown } }
         if (o?.v === VERSION) {
           // Each field falls back on its own: a junk step must not switch "Start right away" off.
           const step = o.prefs?.stepMinutes
@@ -154,6 +158,7 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
             stepMinutes: (STEP_CHOICES as readonly unknown[]).includes(step) ? (step as StepMinutes) : DEFAULT_PREFS.stepMinutes,
             startOnTap: o.prefs?.startOnTap === true,
             wheelMs: okLength(o.prefs?.wheelMs) ? o.prefs.wheelMs : DEFAULT_PREFS.wheelMs,
+            countUp: o.prefs?.countUp === true,
           }
         }
       } catch { /* fall through */ }
