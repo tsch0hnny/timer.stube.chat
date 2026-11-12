@@ -40,8 +40,10 @@ export interface Prefs {
   wheelMs: number
   /** Timers count up from 00:00 to their length instead of down (the band rehearses that way). */
   countUp: boolean
+  /** While running, a short tap shows the hidden controls (otherwise it takes a long press). */
+  tapControls: boolean
 }
-export const DEFAULT_PREFS: Prefs = Object.freeze({ stepMinutes: 1, startOnTap: false, wheelMs: 15 * MINUTE, countUp: false })
+export const DEFAULT_PREFS: Prefs = Object.freeze({ stepMinutes: 1, startOnTap: false, wheelMs: 15 * MINUTE, countUp: false, tapControls: false })
 
 export const BUILT_IN_PRESETS: readonly Preset[] = Object.freeze(
   Array.from({ length: 12 }, (_, i) => Object.freeze({ id: `builtin-${(i + 1) * 15}`, durationMs: (i + 1) * 15 * MINUTE, builtIn: true })),
@@ -150,7 +152,7 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
       const raw = read(KEYS.prefs)
       if (raw === null) return { ...DEFAULT_PREFS }
       try {
-        const o = JSON.parse(raw) as { v?: number; prefs?: { stepMinutes?: unknown; startOnTap?: unknown; wheelMs?: unknown; countUp?: unknown } }
+        const o = JSON.parse(raw) as { v?: number; prefs?: { stepMinutes?: unknown; startOnTap?: unknown; wheelMs?: unknown; countUp?: unknown; tapControls?: unknown } }
         if (o?.v === VERSION) {
           // Each field falls back on its own: a junk step must not switch "Start right away" off.
           const step = o.prefs?.stepMinutes
@@ -159,6 +161,7 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
             startOnTap: o.prefs?.startOnTap === true,
             wheelMs: okLength(o.prefs?.wheelMs) ? o.prefs.wheelMs : DEFAULT_PREFS.wheelMs,
             countUp: o.prefs?.countUp === true,
+            tapControls: o.prefs?.tapControls === true,
           }
         }
       } catch { /* fall through */ }

@@ -132,6 +132,19 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
             <span class="track" aria-hidden="true"><span class="knob" /></span>
           </span>
         </label>
+        <label class="cell">
+          <span>Tap to show controls</span>
+          <span class="switch">
+            <input
+              type="checkbox"
+              role="switch"
+              :checked="timer.prefs.value.tapControls"
+              data-testid="tap-controls"
+              @change="timer.setTapControls(($event.target as HTMLInputElement).checked)"
+            >
+            <span class="track" aria-hidden="true"><span class="knob" /></span>
+          </span>
+        </label>
       </div>
     </div>
 
@@ -339,10 +352,10 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .heading { margin-top: 0.5rem; }
   .buttons { margin: 0.75rem 0.25rem 1rem; }
 }
-/* Where the wheel column fits the height, it stays put and only the list scrolls. With both switches
-   it is 386 px tall up to 500 px (5-row wheel) and 454 px above, from 24 px down, plus up to 21 px
+/* Where the wheel column fits the height, it stays put and only the list scrolls. With three switches
+   it is 438 px tall up to 500 px (5-row wheel) and 506 px above, from 24 px down, plus up to 21 px
    of home indicator: phones in landscape scroll it with the list. */
-@media (orientation: landscape) and (min-height: 440px) {
+@media (orientation: landscape) and (min-height: 560px) {
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -158,6 +158,14 @@ describe('presets and prefs live behind the same interface', () => {
     kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, countUp: 'on' } }))
     expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5 })
   })
+  it('remembers "Tap to show controls", off by default and on its own', () => {
+    const kv = memoryKV()
+    expect(createLocalStore(kv).loadPrefs().tapControls).toBe(false)
+    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, tapControls: true })
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, tapControls: true })
+    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, countUp: true, tapControls: 1 } }))
+    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5, countUp: true })
+  })
   it('does not touch the spike’s keys', () => {
     const kv = memoryKV()
     kv.data.set('spike:log', '[]')

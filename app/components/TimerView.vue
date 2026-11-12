@@ -65,20 +65,40 @@ watch(isRunning, (running) => {
 })
 watch(picking, (p) => { if (p) clearTimeout(hideTimer); else scheduleHide() })
 
-// ---- stage gestures: long press shows controls, a tap shows the hint or hides them
+// ---- stage gestures: long press shows controls (or a tap, with "Tap to show controls" on); a tap
+// shows the hint or hides them
 const onControl = (e: Event) => !!(e.target as HTMLElement | null)?.closest('[data-control]')
+/**
+ * When the finger lifts the browser delivers a click where it was, and the controls that touch showed
+ * are now under it: without this, a tap (or a long press) where Pause sits paused the timer and one on
+ * the ✕ asked "End timer?" (reproduced with real touch input in Chromium; the long press did it in
+ * c18efb0 too). That click belongs to the touch that showed them, so it is dropped; the next touch
+ * starts fresh. Attached with addEventListener, not @click.capture: a Vue
+ * listener earlier on the path stamps the event, and Vue then skips every handler attached in the
+ * same millisecond (with a frozen test clock, that was every control on the stage).
+ */
+const stageEl = ref<HTMLElement | null>(null)
+let swallowClick = false
+function onStageClick(e: MouseEvent) {
+  if (!swallowClick) return
+  swallowClick = false
+  e.stopPropagation()
+  e.preventDefault()
+}
 function onStageDown(e: PointerEvent) {
+  swallowClick = false
   if (onControl(e)) { if (isRunning.value) scheduleHide(); return }
   longPressFired = false
   clearTimeout(pressTimer)
   if (isRunning.value && !shownWhileRunning.value) {
-    pressTimer = setTimeout(() => { longPressFired = true; showControls() }, LONG_PRESS_MS)
+    pressTimer = setTimeout(() => { longPressFired = true; swallowClick = true; showControls() }, LONG_PRESS_MS)
   }
 }
 function onStageUp(e: PointerEvent) {
   clearTimeout(pressTimer)
   if (onControl(e) || longPressFired || !isRunning.value) return
   if (shownWhileRunning.value) { hideControls(); return }
+  if (timer.prefs.value.tapControls) { showControls(); swallowClick = true; return }
   hint.value = true
   clearTimeout(hintTimer)
   hintTimer = setTimeout(() => { hint.value = false }, HINT_MS)
@@ -128,6 +148,7 @@ onMounted(() => {
   syncOrientation()
   mq.addEventListener('change', syncOrientation)
   window.addEventListener('keydown', onKey)
+  stageEl.value?.addEventListener('click', onStageClick, true)
   // Opened already counting by "Start right away": show Pause for the usual 5 s, as after play.
   // A timer restored by a reload mid-set stays quiet (it started long before).
   const s = timer.state.value
@@ -136,6 +157,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mq?.removeEventListener('change', syncOrientation)
   window.removeEventListener('keydown', onKey)
+  stageEl.value?.removeEventListener('click', onStageClick, true)
   for (const t of [hideTimer, hintTimer, confirmTimer, resetTimer, pressTimer]) clearTimeout(t)
 })
 
@@ -144,6 +166,7 @@ const display = timer.display
 
 <template>
   <section
+    ref="stageEl"
     class="stage"
     :data-rot="rotation"
     data-testid="timer-view"

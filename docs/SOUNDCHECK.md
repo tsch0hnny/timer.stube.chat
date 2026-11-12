@@ -18,7 +18,7 @@
 
    Close the overlay.
 4. **Start a timer (30 s).** Check that **Count up is on** (the band reads the time elapsed) and
-   **Start right away is off**. Tap the set length in the Presets list (or dial it on the wheel and
+   **Start right away is off**. **Tap to show controls** as the band prefers. Tap the set length in the Presets list (or dial it on the wheel and
    tap **Set**). The paused landscape view opens at 00:00. If the
    amber "Tap once to keep the screen on" pill shows, tap the screen until it disappears (iOS
    sometimes refuses the first tap after opening the app). **No amber pill may stay.** Tap the green

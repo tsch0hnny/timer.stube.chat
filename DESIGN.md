@@ -272,7 +272,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 - **Secondary Grey** (secondary-grey): the words under preset times, the version label, debug labels.
 - **Button Grey** (button-grey): every round button that is not start (reset, Set, Pause, ±step, exit).
 - **Menu Grey** (menu-grey): the step menu, the hint and exit-confirm capsules, the update capsule.
-- **Cell Grey** (cell-grey): the grouped "Start right away" and "Count up" cells and a pressed preset row.
+- **Cell Grey** (cell-grey): the grouped switch cells ("Start right away", "Count up", "Tap to show controls") and a pressed preset row.
 - **Separator Grey** (separator-grey): 0.5px hairlines between list rows and menu choices.
 - **Chevron Grey** (chevron-grey): the row chevrons when presets only set.
 - **Quiet Fill** (quiet-fill): the wheel's selection band and the off switch track.
@@ -356,7 +356,7 @@ Apple's round timer button, tactile and plain.
 - **Menu:** opaque menu-grey, 0.875rem corners, 7.5rem wide, 3rem choices (15, 10, 5, 1 min) split by hairlines. The choice under the finger lights menu-highlight and goes 600; it grows from the button (opacity 160ms, scaleY from 0.6 over 200ms). Reduced motion: a 120ms fade only.
 
 ### Grouped Cell and Switch
-- **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in one cell-grey group with 0.75rem corners: "Start right away" and "Count up", as the iOS timer's "When Timer Ends" row. A separator-grey hairline between them, inset to the text.
+- **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in one cell-grey group with 0.75rem corners: "Start right away", "Count up" and "Tap to show controls", as the iOS timer's "When Timer Ends" row. Separator-grey hairlines between them, inset to the text.
 - **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green (as every iOS switch). Knob slides over 220ms.
 
 ### Preset List (Recents format)

@@ -164,13 +164,15 @@ test('the digits stay clear of the controls when they are shown, rotated and in 
   expect(await gap()).toBeGreaterThanOrEqual(0)
 })
 
-test('in a landscape viewport the "Count up" switch can be reached and tapped', async ({ page }) => {
+test('in a landscape viewport every switch can be reached and tapped', async ({ page }) => {
   await openApp(page, { countUp: false })
   const v = page.viewportSize()!
   await page.setViewportSize({ width: Math.max(v.width, v.height), height: Math.min(v.width, v.height) })
-  await page.getByTestId('count-up').scrollIntoViewIfNeeded()
-  const b = (await page.getByTestId('count-up').boundingBox())!
-  expect(b.y >= 0 && b.y + b.height <= page.viewportSize()!.height, JSON.stringify(b)).toBe(true)
-  await page.getByText('Count up').click()
-  await expect(page.getByTestId('count-up')).toBeChecked()
+  for (const [id, words] of [['start-on-tap', 'Start right away'], ['count-up', 'Count up'], ['tap-controls', 'Tap to show controls']]) {
+    await page.getByTestId(id).scrollIntoViewIfNeeded()
+    const b = (await page.getByTestId(id).boundingBox())!
+    expect(b.y >= 0 && b.y + b.height <= page.viewportSize()!.height, `${id} ${JSON.stringify(b)}`).toBe(true)
+    await page.getByText(words, { exact: true }).click()
+    await expect(page.getByTestId(id)).toBeChecked()
+  }
 })

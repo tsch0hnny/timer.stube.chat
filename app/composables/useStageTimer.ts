@@ -140,6 +140,11 @@ function create() {
       store.savePrefs(prefs.value)
       log('prefs', `count up ${on ? 'on' : 'off'}`)
     },
+    setTapControls(on: boolean) {
+      prefs.value = { ...prefs.value, tapControls: on }
+      store.savePrefs(prefs.value)
+      log('prefs', `tap to show controls ${on ? 'on' : 'off'}`)
+    },
     /** The stage's reset: back to the full length (00:00 counting up), paused, ready for the next first note. */
     reset() {
       const s = state.value

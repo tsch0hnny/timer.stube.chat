@@ -68,6 +68,12 @@ alongside other work).
      tap it again and then Reset: back to the full length, paused, green Start?** With the timer
      paused at its full length, **the reset arrow is greyed out?**
    - **Does everything respond on the first tap? Does the step menu work?**
+   - Let the controls fade, then **long press right where Pause sits**: **the controls appear and it
+     keeps running** (on c18efb0 the lifting finger could press the Pause that had just appeared)?
+   - On the presets screen turn **Tap to show controls** on, start a timer and let the controls
+     fade. **One short tap shows them, the next tap hides them?** Let them fade and **tap right where
+     Pause sits**, then where the ✕ sits: **the controls appear, it keeps running, and no "End
+     timer?"** Turn the switch off again (or leave it on if the band prefers it).
 5. **Zero and overtime.** Step down to about 00:20 (−5 min a few times, then −1 min), and wait. At zero:
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it
    keeps counting −00:01, −00:02 …?**
