@@ -133,6 +133,12 @@ function create() {
       store.savePrefs(prefs.value)
       log('prefs', `start right away ${on ? 'on' : 'off'}`)
     },
+    /** The stage's reset: back to the full length, paused, ready for the next first note. */
+    reset() {
+      const s = state.value
+      if (s.status === 'idle') return
+      commit(selectCore(s.durationMs), 'reset')
+    },
     exit() {
       commit(clear(), 'exit')
       wakeLock.want(false, 'back to presets')

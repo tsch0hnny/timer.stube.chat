@@ -264,7 +264,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 ### Secondary
 - **Overtime Red** (overtime-red): the stage digits once the countdown passes zero, and nothing else.
 - **Caution Amber** (caution-amber, black text on it): the status pill that says the app needs a tap (wake lock lost, storage unavailable). Deliberately not red, so it cannot be misread as overtime.
-- **End Red** (end-red, white text on it): destructive actions only: the End button in the exit confirm and the delete capsule behind a swiped preset.
+- **End Red** (end-red, white text on it): destructive actions only: the End and Reset buttons in the stage's inline confirms and the delete capsule behind a swiped preset.
 
 ### Neutral
 - **Stage Black** (stage-black): every background, the status-bar strip, the gap inside the button ring.
@@ -322,7 +322,7 @@ The app is two screens, both fixed to the full screen height. In the iOS home-sc
 
 **Presets, landscape:** two columns, the wheel column (16–22rem) beside the list with a 2.5rem gap. Where the height allows (360px and up) the wheel column is sticky and only the list scrolls; below 500px tall the wheel shows 5 rows.
 
-**Stage:** always landscape, drawn by CSS rotation inside the portrait viewport, with the safe-area insets remapped to the rotated sides. The digits box leaves room for the control row whether or not it is shown, so the digits never move when controls appear. The control row (−step, Start/Pause, +step, 1.75rem apart) sits centred 0.75rem from the bottom; exit sits top-left, the version label bottom-right.
+**Stage:** always landscape, drawn by CSS rotation inside the portrait viewport, with the safe-area insets remapped to the rotated sides. The digits are centred on both axes and never move when controls appear; a size cap keeps their ink clear of the control row. The control row (−step, Start/Pause, +step, 1.75rem apart) sits centred 0.75rem from the bottom; exit sits top-left and reset (counter-clockwise arrow, back to the full length, paused) mirrors it top-right, both away from the row used between songs; the version label sits bottom-right.
 
 ### Named Rules
 **The Notch Dim Rule.** iOS dims a band about 85px deep along the notch edge in the home-screen app. Content on that edge moves a further `notch-dim` (2.5rem) inward: the top of the Presets screen in portrait, and the corner controls on the notch side of the stage.
@@ -349,7 +349,7 @@ Apple's round timer button, tactile and plain.
 - **Start:** start-green-fill with start-green label. On the stage it is Start until running, then becomes grey Pause; the label cross-fades (100ms).
 - **Pressed:** brightness 1.45 over 120ms. **Disabled:** label dims only (white at 32%, green at 38%); the fill stays.
 - **Focus:** a 3px white outline, 3px offset, everywhere.
-- **End:** a capsule in end-red, white text, inside the exit confirm only (the swipe's delete capsule is the only other end-red surface).
+- **End / Reset:** capsules in end-red, white text, inside the exit and reset confirms only (the swipe's delete capsule is the only other end-red surface). Both corner buttons act at once while paused and ask inline while running ("End timer?" opens right of the ✕, "Reset timer?" left of the reset); the question lapses after 3s. Reset is disabled when the timer is paused at its full length.
 
 ### Step Buttons and Step Menu
 - Round grey buttons labelled with the current step ("−5 min", "+5 min"). A tap steps; a hold opens the step menu above the button (the button scales to 1.06 while held).
@@ -369,7 +369,7 @@ Apple's round timer button, tactile and plain.
 - Three scroll-snapping columns (hours, min, sec), numbers ending just left of each column's centre with the unit beside them; a quiet-fill band (8px corners) across all three at the centre row; the drum fades to transparent at top and bottom and, where supported, curves with a scroll-linked rotateX. Reduced motion drops the curve. A focused column underlines its unit.
 
 ### Capsules and Pills
-- **Hint / exit confirm:** opaque menu-grey capsules, white bold text.
+- **Hint / exit and reset confirms:** opaque menu-grey capsules, white bold text.
 - **Status pill:** caution-amber, black 800-weight text, centred at the top of the stage.
 
 ### Stage Digits (signature)

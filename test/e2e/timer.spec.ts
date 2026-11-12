@@ -225,3 +225,47 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect.poll(measure).toEqual({ appH: `${vp.width}px`, stage: vp.width })
   })
 })
+
+test.describe('reset (top right, like the ✕)', () => {
+  test('greyed out at the full length; resets at once while paused', async ({ page }) => {
+    await openPreset(page, 45)
+    await expect(page.getByTestId('reset')).toBeDisabled()
+    await page.getByTestId('step-plus').click()
+    await expectTime(page, '46:00 left')
+    await page.getByTestId('reset').click()
+    await expectTime(page, '45:00 left')
+    await expect(page.getByTestId('reset-confirm')).toHaveCount(0)
+  })
+
+  test('while running it asks first; the question lapses after 3 s; Reset goes back to full, paused', async ({ page }) => {
+    await openPreset(page, 45)
+    await page.getByTestId('play').click()
+    await page.clock.runFor(10_000)
+    await longPress(page)
+    await page.getByTestId('reset').click()
+    await expect(page.getByTestId('reset-confirm')).toContainText('Reset timer?')
+    await page.clock.runFor(3100)
+    await settle(page) // the fade-out runs on the fake clock's frames
+    await expect(page.getByTestId('reset-confirm')).toHaveCount(0)
+    await expectTime(page, '44:46 left') // still running, untouched
+    await page.getByTestId('reset').click()
+    await page.getByTestId('reset-confirm-reset').click()
+    await expectTime(page, '45:00 left')
+    await settle(page) // the Pause → Start cross-fade
+    await expect(page.getByTestId('play')).toHaveText('Start')
+    await page.clock.runFor(5000)
+    await expectTime(page, '45:00 left') // paused
+  })
+
+  test('from overtime it comes back to the full length, not negative', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('play').click()
+    await page.clock.runFor(15 * MIN + 20_000)
+    await expectTime(page, '00:20 over')
+    await longPress(page)
+    await page.getByTestId('reset').click()
+    await page.getByTestId('reset-confirm-reset').click()
+    await expectTime(page, '15:00 left')
+    await expect(digits(page)).not.toHaveClass(/negative/)
+  })
+})

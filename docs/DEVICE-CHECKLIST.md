@@ -63,6 +63,9 @@ alongside other work).
      button and stays fully on screen every time** (on e625305 it hung off the screen from 5
      upwards). Releasing anywhere off the menu keeps the step. Set it back to 1 min.
    - Tap ✕ while running: "End timer?" appears and disappears again after 3 s.
+   - Tap the reset arrow (top right) while running: **"Reset timer?" appears and goes after 3 s;
+     tap it again and then Reset: back to the full length, paused, green Start?** With the timer
+     paused at its full length, **the reset arrow is greyed out?**
    - **Does everything respond on the first tap? Does the step menu work?**
 5. **Zero and overtime.** Step down to about 00:20 (−5 min a few times, then −1 min), and wait. At zero:
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it

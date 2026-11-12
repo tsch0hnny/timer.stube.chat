@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { PhX } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise, PhX } from '@phosphor-icons/vue'
 import { FEATURES, LANDSCAPE_ROTATION } from '~/features'
 import { useStageTimer } from '~/composables/useStageTimer'
 import { useDebugOverlay } from '~/composables/useSecretTaps'
@@ -20,6 +20,12 @@ const picking = ref(false)
 const controlsVisible = computed(() => !isRunning.value || shownWhileRunning.value)
 const hint = ref(false)
 const confirmExit = ref(false)
+const confirmReset = ref(false)
+/** Nothing to reset: paused at the full length. */
+const atFullLength = computed(() => {
+  const s = timer.state.value
+  return s.status === 'paused' && s.remainingMs === s.durationMs
+})
 
 // ---- landscape: CSS rotation inside a portrait viewport, none when the viewport is already landscape
 const portrait = ref(true)
@@ -31,13 +37,14 @@ const rotation = computed(() => (portrait.value ? LANDSCAPE_ROTATION : 'none'))
 let hideTimer: ReturnType<typeof setTimeout> | undefined
 let hintTimer: ReturnType<typeof setTimeout> | undefined
 let confirmTimer: ReturnType<typeof setTimeout> | undefined
+let resetTimer: ReturnType<typeof setTimeout> | undefined
 let pressTimer: ReturnType<typeof setTimeout> | undefined
 let longPressFired = false
 
 function scheduleHide() {
   clearTimeout(hideTimer)
   if (!isRunning.value || picking.value) return
-  hideTimer = setTimeout(() => { shownWhileRunning.value = false; confirmExit.value = false }, AUTO_HIDE_MS)
+  hideTimer = setTimeout(() => { shownWhileRunning.value = false; confirmExit.value = false; confirmReset.value = false }, AUTO_HIDE_MS)
 }
 function showControls() {
   shownWhileRunning.value = true
@@ -47,6 +54,7 @@ function showControls() {
 function hideControls() {
   shownWhileRunning.value = false
   confirmExit.value = false
+  confirmReset.value = false
   clearTimeout(hideTimer)
 }
 watch(isRunning, (running) => {
@@ -90,13 +98,28 @@ function onExit() {
   }
 }
 function onConfirmEnd() { clearTimeout(confirmTimer); confirmExit.value = false; timer.exit() }
+// Reset works like the ✕: at once while paused, with an inline confirm while running.
+function onReset() {
+  if (!isRunning.value) { timer.reset(); return }
+  if (!confirmReset.value) {
+    confirmReset.value = true
+    clearTimeout(resetTimer)
+    resetTimer = setTimeout(() => { confirmReset.value = false }, CONFIRM_MS)
+    scheduleHide()
+  }
+}
+function onConfirmReset() { clearTimeout(resetTimer); confirmReset.value = false; timer.reset() }
 
 function onKey(e: KeyboardEvent) {
   if (debug.debugOpen.value) return
   if (e.key === ' ' || e.key === 'k') { e.preventDefault(); onToggle() }
   else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); onStep(1, timer.prefs.value.stepMinutes) }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); onStep(-1, timer.prefs.value.stepMinutes) }
-  else if (e.key === 'Escape') { if (confirmExit.value) confirmExit.value = false; else onExit() }
+  else if (e.key === 'Escape') {
+    if (confirmReset.value) confirmReset.value = false
+    else if (confirmExit.value) confirmExit.value = false
+    else onExit()
+  }
 }
 
 onMounted(() => {
@@ -112,7 +135,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   mq?.removeEventListener('change', syncOrientation)
   window.removeEventListener('keydown', onKey)
-  for (const t of [hideTimer, hintTimer, confirmTimer, pressTimer]) clearTimeout(t)
+  for (const t of [hideTimer, hintTimer, confirmTimer, resetTimer, pressTimer]) clearTimeout(t)
 })
 
 const display = timer.display
@@ -159,6 +182,26 @@ const display = timer.display
                   <button type="button" class="end" data-testid="exit-confirm-end" @click="onConfirmEnd">End</button>
                 </div>
               </Transition>
+            </div>
+
+            <!-- Mirrors the ✕: the confirm opens to its left. -->
+            <div class="reset" data-control>
+              <Transition name="fade">
+                <div v-if="confirmReset" class="confirm capsule" data-testid="reset-confirm">
+                  <span>Reset timer?</span>
+                  <button type="button" class="end" data-testid="reset-confirm-reset" @click="onConfirmReset">Reset</button>
+                </div>
+              </Transition>
+              <button
+                type="button"
+                class="btn-round exit-btn"
+                aria-label="Reset to the full length"
+                :disabled="atFullLength"
+                data-testid="reset"
+                @click="onReset"
+              >
+                <PhArrowCounterClockwise :size="22" weight="bold" />
+              </button>
             </div>
 
             <div class="row">
@@ -279,6 +322,7 @@ const display = timer.display
 .play { width: var(--play-size); height: var(--play-size); font-size: 1.1875rem; }
 .exit { position: absolute; top: 0.75rem; left: calc(0.75rem + var(--notch-left, 0px)); display: flex; align-items: center; gap: 0.6rem; }
 .exit-btn { width: 3.25rem; height: 3.25rem; }
+.reset { position: absolute; top: 0.75rem; right: calc(0.75rem + var(--notch-right, 0px)); display: flex; align-items: center; gap: 0.6rem; }
 .confirm {
   display: flex;
   align-items: center;
