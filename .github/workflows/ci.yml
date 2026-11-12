@@ -92,6 +92,11 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: E2E (WebKit iPhone 13 Pro + Chromium Pixel 7)
         run: npx playwright test
+      - name: impeccable detect (running app + rendered timer states)
+        run: |
+          npx --yes impeccable@4.8.2 telemetry off
+          npx --yes impeccable@4.8.2 detect --viewport 390x844 http://127.0.0.1:8090/
+          npx --yes impeccable@4.8.2 detect --viewport 390x844 $(find test-results -name '*.html' -path '*screens*')
       - uses: actions/upload-artifact@v7
         if: always()
         with:

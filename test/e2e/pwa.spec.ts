@@ -14,7 +14,7 @@ test.describe('installable, offline PWA', () => {
 
   test('opens offline after the first load, served by the service worker', async ({ page, context }) => {
     await page.goto('/')
-    await expect(page.getByTestId('app-shell')).toBeVisible()
+    await expect(page.getByTestId('presets')).toBeVisible()
     // Prompt mode does not claim the first page; the next load is controlled.
     // (expect.poll, not waitForFunction: the latter treats an async predicate's Promise as truthy.)
     await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.state), { timeout: 15_000 }).toBe('activated')
@@ -23,7 +23,7 @@ test.describe('installable, offline PWA', () => {
 
     await context.setOffline(true)
     await page.reload()
-    await expect(page.getByTestId('app-shell')).toBeVisible()
+    await expect(page.getByTestId('presets')).toBeVisible()
     expect(await page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true)
     await context.setOffline(false)
   })

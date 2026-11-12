@@ -1,0 +1,166 @@
+import { expect, test } from '@playwright/test'
+import { MIN, T0, digits, expectTime, longPress, openPreset, tapStage } from './helpers'
+
+test.describe('countdown on the real build, driven by a fake clock', () => {
+  test('a full 60:00 runs to zero and crosses into overtime in red', async ({ page }) => {
+    await openPreset(page, 60)
+    await expectTime(page, '60:00 left')
+    await page.getByTestId('play').click()
+    await page.clock.runFor(1000)
+    await expectTime(page, '59:59 left')
+    await page.clock.runFor(30 * MIN - 1000)
+    await expectTime(page, '30:00 left')
+    await page.clock.runFor(30 * MIN - 1000)
+    await expectTime(page, '00:01 left')
+    await expect(digits(page)).not.toHaveClass(/negative/)
+    await page.clock.runFor(1000)
+    await expectTime(page, '00:00 over') // shown as −00:00: the minus appears at zero
+    await expect(digits(page)).toHaveClass(/negative/)
+    await expect(digits(page)).toHaveCSS('color', 'rgb(255, 69, 58)')
+    await page.clock.runFor(2 * MIN + 15_000)
+    await expectTime(page, '02:15 over')
+    expect(await page.getByTestId('cell').first().textContent()).toBe('−')
+  })
+
+  test('reload during overtime comes back in overtime with the right value', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('play').click()
+    await page.clock.runFor(15 * MIN + 5000)
+    await expectTime(page, '00:05 over')
+    await page.reload()
+    await expect(page.getByTestId('timer-view')).toBeVisible()
+    await expect(page.getByTestId('presets')).toHaveCount(0)
+    await expect(digits(page)).toHaveClass(/negative/)
+    const label = await digits(page).getAttribute('aria-label')
+    expect(['00:05 over', '00:06 over']).toContain(label) // the reload itself may take a tick
+    await page.clock.runFor(60_000)
+    await expect(digits(page)).toHaveAttribute('aria-label', /^01:0[56] over$/)
+  })
+
+  test('pause for 10 minutes and resume keeps the remaining time', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('play').click()
+    await page.clock.runFor(MIN)
+    await expectTime(page, '14:00 left')
+    await longPress(page) // controls fade after 5 s while running
+    await page.getByTestId('pause').click()
+    await page.clock.runFor(10 * MIN)
+    await expectTime(page, '14:00 left')
+    await page.getByTestId('play').click()
+    await page.clock.runFor(1000)
+    await expectTime(page, '13:59 left')
+  })
+
+  test('opens offline and restores a running timer from storage', async ({ page, context }) => {
+    await openPreset(page, 30)
+    await expect.poll(() => page.evaluate(async () => (await navigator.serviceWorker.getRegistration())?.active?.state), { timeout: 15_000 }).toBe('activated')
+    await page.getByTestId('play').click()
+    await page.clock.runFor(5 * MIN)
+    await expectTime(page, '25:00 left')
+    await page.reload() // now controlled by the SW
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true)
+    await context.setOffline(true)
+    await page.reload()
+    await expect(page.getByTestId('timer-view')).toBeVisible()
+    await page.clock.runFor(MIN)
+    await expect(digits(page)).toHaveAttribute('aria-label', /^2[34]:5\d left$/)
+    await context.setOffline(false)
+  })
+
+  test('± steps while paused and running, across zero in both directions', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('step-plus').click()
+    await expectTime(page, '16:00 left')
+    await page.getByTestId('step-minus').click()
+    await page.getByTestId('step-minus').click()
+    await expectTime(page, '14:00 left')
+    await page.getByTestId('play').click()
+    await page.clock.runFor(13 * MIN + 30_000) // 00:30 left
+    await longPress(page)
+    await page.getByTestId('step-minus').click()
+    await expectTime(page, '00:30 over')
+    await expect(digits(page)).toHaveClass(/negative/)
+    await page.getByTestId('step-plus').click()
+    await expectTime(page, '00:30 left')
+    await expect(digits(page)).not.toHaveClass(/negative/)
+  })
+
+  test('hold − or + to pick the step; both buttons follow and it is remembered', async ({ page }) => {
+    await openPreset(page, 45)
+    const plus = page.getByTestId('step-plus')
+    const b = (await plus.boundingBox())!
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+    await page.mouse.down()
+    await page.clock.runFor(500)
+    await expect(page.getByTestId('step-strip')).toBeVisible()
+    const ten = (await page.getByTestId('step-choice-10').boundingBox())!
+    await page.mouse.move(ten.x + ten.width / 2, ten.y + ten.height / 2, { steps: 4 })
+    await page.mouse.up()
+    await expect(page.getByTestId('step-strip')).toHaveCount(0)
+    await expect(plus).toHaveText('+10')
+    await expect(page.getByTestId('step-minus')).toHaveText('−10')
+    await expectTime(page, '45:00 left') // picking does not step
+    await plus.click()
+    await expectTime(page, '55:00 left')
+    await page.reload()
+    await expect(page.getByTestId('step-plus')).toHaveText('+10')
+  })
+
+  test('controls: shown while paused, fade 5 s after play, tap shows the hint, long press brings them back', async ({ page }) => {
+    await openPreset(page, 15)
+    await expect(page.getByTestId('controls')).toBeVisible()
+    await page.clock.runFor(10_000)
+    await expect(page.getByTestId('controls')).toBeVisible() // paused: stay
+    await page.getByTestId('play').click()
+    await page.clock.runFor(4000)
+    await expect(page.getByTestId('controls')).toBeVisible()
+    await page.clock.runFor(1500)
+    await expect(page.getByTestId('controls')).toHaveCount(0)
+    await tapStage(page)
+    await expect(page.getByTestId('hint')).toHaveText('Hold to show controls')
+    await expect(page.getByTestId('controls')).toHaveCount(0)
+    await longPress(page)
+    await expect(page.getByTestId('controls')).toBeVisible()
+    await tapStage(page) // tap outside the controls hides them
+    await expect(page.getByTestId('controls')).toHaveCount(0)
+  })
+
+  test('✕ while running needs a second tap on End; paused goes straight back', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('play').click()
+    await page.getByTestId('exit').click()
+    await expect(page.getByTestId('exit-confirm')).toBeVisible()
+    await page.clock.runFor(3100)
+    await expect(page.getByTestId('exit-confirm')).toHaveCount(0)
+    await expect(page.getByTestId('timer-view')).toBeVisible()
+    await page.getByTestId('exit').click()
+    await page.getByTestId('exit-confirm-end').click()
+    await expect(page.getByTestId('presets')).toBeVisible()
+    await page.getByTestId('preset-30').click()
+    await page.getByTestId('exit').click()
+    await expect(page.getByTestId('presets')).toBeVisible()
+  })
+
+  test('a refused wake lock is shown on screen; a held one shows nothing', async ({ browser }) => {
+    for (const mode of ['deny', 'grant'] as const) {
+      const ctx = await browser.newContext()
+      const page = await ctx.newPage()
+      await openPreset(page, 15, { wakeLock: mode })
+      if (mode === 'deny') await expect(page.getByTestId('pill-wakelock')).toHaveText('Tap once to keep the screen on')
+      else await expect(page.getByTestId('pill-wakelock')).toHaveCount(0)
+      await ctx.close()
+    }
+  })
+
+  test('the debug overlay opens with 5 taps on the version and shows the stored end time', async ({ page }) => {
+    await openPreset(page, 15)
+    await page.getByTestId('play').click()
+    await longPress(page)
+    for (let i = 0; i < 5; i++) await page.getByTestId('version').click()
+    await expect(page.getByTestId('debug')).toBeVisible()
+    await expect(page.getByTestId('debug-stored')).toContainText(`endAt ${new Date(T0.getTime() + 15 * MIN).toISOString().slice(0, 16)}`)
+    await expect(page.getByTestId('debug-wake-lock')).toContainText('held')
+    await page.getByTestId('debug-close').click()
+    await expect(page.getByTestId('debug')).toHaveCount(0)
+  })
+})
