@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { PhCaretRight, PhPlay, PhTrash } from '@phosphor-icons/vue'
 
 /**
@@ -70,7 +70,10 @@ function onMove(e: PointerEvent) {
     sideways = Math.abs(dx) > Math.abs(dy)
     if (!sideways) { start = null; return } // a scroll: the browser's
     swiped = true
-    fg.value?.setPointerCapture(e.pointerId)
+    try { fg.value?.setPointerCapture(e.pointerId) } catch { /* the pointer is gone: the window listener ends it */ }
+    // Wherever the finger lifts, even after a lost capture, the swipe comes to rest.
+    window.addEventListener('pointerup', onWindowEnd, true)
+    window.addEventListener('pointercancel', onWindowEnd, true)
     emit('open', true) // closes any other open row
   }
   let x = start.base + dx
@@ -80,6 +83,8 @@ function onMove(e: PointerEvent) {
 /** Ends a swipe: rest open, rest closed, or delete when armed. */
 function settle(fromRelease = false) {
   start = null
+  window.removeEventListener('pointerup', onWindowEnd, true)
+  window.removeEventListener('pointercancel', onWindowEnd, true)
   if (drag.value === null || removing.value) return
   if (fromRelease && armed.value) { void remove(); return }
   const open = drag.value < -ACTION / 2
@@ -90,10 +95,24 @@ function onUp(e: PointerEvent) {
   if (!start || e.pointerId !== start.id) return
   settle(true)
 }
-// The browser can take a touch away (a scroll, an overlapping gesture, iOS cancelling the capture)
-// without a pointerup: the swipe still has to come to rest instead of sticking halfway.
+// The browser can take a touch away (a scroll, an overlapping gesture) without a pointerup on the
+// row: the swipe still has to come to rest instead of sticking halfway.
 function onCancel() { settle() }
-function onLostCapture() { if (start) settle() }
+function onWindowEnd(e: PointerEvent) {
+  if (start && e.pointerId === start.id) settle(e.type === 'pointerup')
+}
+// Once a gesture has gone sideways it stays a swipe until the finger lifts: a thumb that curves off
+// the row at the end must not turn it into a scroll (which would cancel it).
+function onTouchMove(e: TouchEvent) {
+  if (start && drag.value !== null && e.cancelable) e.preventDefault()
+}
+// Only the row's own capture ending counts. On iOS a touch is first captured by the element under
+// the finger (the time text, say); when the row takes the capture as the swipe starts, the text
+// reports lostpointercapture, and that bubbles up here: it must not end the swipe (it did in b39a186).
+function onLostCapture(e: PointerEvent) {
+  if (e.target !== fg.value) return
+  if (start) settle()
+}
 function onClick() {
   if (swiped) { swiped = false; return } // the click that ends a swipe opens nothing
   if (props.open) { emit('open', false); return } // a tap on an open row just closes it
@@ -103,6 +122,11 @@ function onKey(e: KeyboardEvent) {
   swiped = false
   if (props.swipe && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); void remove() }
 }
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerup', onWindowEnd, true)
+  window.removeEventListener('pointercancel', onWindowEnd, true)
+})
 
 async function remove() {
   if (removing.value) return
@@ -155,6 +179,7 @@ async function remove() {
       @pointerup="onUp"
       @pointercancel="onCancel"
       @lostpointercapture="onLostCapture"
+      @touchmove="onTouchMove"
       @click="onClick"
       @keydown="onKey"
     >

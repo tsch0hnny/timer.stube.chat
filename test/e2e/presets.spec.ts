@@ -312,3 +312,114 @@ test('a swipe never sticks halfway, even when the browser takes the touch away m
   await swipe(page, '30', -100) // and it still swipes normally afterwards
   await expect.poll(() => offsetOf(page, '30')).toBe(-72)
 })
+
+test('iOS: the touch moving from the text to the row (a bubbling lostpointercapture) does not end the swipe', async ({ page }) => {
+  await openApp(page)
+  const row = page.getByTestId('preset-30')
+  await row.scrollIntoViewIfNeeded()
+  const b = (await row.boundingBox())!
+  const y = b.y + b.height / 2
+  const x = b.x + b.width - 40
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x - 20, y, { steps: 3 })
+  // On iOS a touch is first captured by the element under the finger (here the time text); when the
+  // row takes the capture, the text reports lostpointercapture, which bubbles up through the row.
+  await row.locator('.time').evaluate((el) => el.dispatchEvent(new PointerEvent('lostpointercapture', { bubbles: true, pointerId: 1 })))
+  await page.mouse.move(x - b.width * 0.75, y, { steps: 10 }) // a flick on across the row
+  await page.mouse.up()
+  await expect(row).toHaveCount(0) // deleted, as a full swipe should
+})
+
+test('a swipe whose finger lifts somewhere else still comes to rest', async ({ page }) => {
+  await openApp(page)
+  const row = page.getByTestId('preset-30')
+  await row.scrollIntoViewIfNeeded()
+  const b = (await row.boundingBox())!
+  const y = b.y + b.height / 2
+  const x = b.x + b.width - 40
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x - 30, y, { steps: 5 })
+  await row.evaluate((el) => { try { el.releasePointerCapture(1) } catch { /* not captured: fine */ } })
+  await page.mouse.move(x - 30, y - 300, { steps: 5 }) // the finger wanders off the row
+  await page.mouse.up()
+  await expect.poll(() => offsetOf(page, '30')).toBe(0)
+  await expect(row).not.toHaveClass(/dragging/)
+})
+
+// Real touch input (Chromium's DevTools protocol), not a mouse: the browser captures the touch to
+// the element under the finger first and hands it over when the row takes it, as iOS does. This is
+// the path the mouse-driven tests missed when b39a186 broke swiping on the iPhone.
+test.describe('swipe with real touch input', () => {
+  test.skip(({ browserName }) => browserName !== 'chromium', 'touch injection is Chromium-only')
+
+  /** A touch swipe; `curve` bends the last third of the path by that many px vertically, as a thumb does. */
+  async function touchSwipe(page: Page, testId: string, dx: number, steps: number, curve = 0) {
+    const cdp = await page.context().newCDPSession(page)
+    const row = page.getByTestId(`preset-${testId}`)
+    await row.scrollIntoViewIfNeeded()
+    const b = (await row.boundingBox())!
+    const x = b.x + b.width - 40 // on the chevron, a child of the row
+    const y = b.y + b.height / 2
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] })
+    for (let i = 1; i <= steps; i++) {
+      const t = i / steps
+      const bend = t > 2 / 3 ? curve * ((t - 2 / 3) * 3) ** 2 : 0
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * t, y: y + bend }] })
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  }
+
+  test('a short swipe rests open on the circle', async ({ page }) => {
+    await openApp(page)
+    await touchSwipe(page, '30', -100, 8)
+    await expect.poll(() => offsetOf(page, '30')).toBe(-72)
+  })
+  test('a quick flick across the row deletes it', async ({ page }) => {
+    await openApp(page)
+    const w = (await page.getByTestId('preset-45').boundingBox())!.width
+    await touchSwipe(page, '45', -w * 0.75, 3) // three big moves: a flick
+    await expect(page.getByTestId('preset-45')).toHaveCount(0)
+  })
+  test('a slow full swipe deletes it', async ({ page }) => {
+    await openApp(page)
+    const w = (await page.getByTestId('preset-60').boundingBox())!.width
+    await touchSwipe(page, '60', -w * 0.75, 20)
+    await expect(page.getByTestId('preset-60')).toHaveCount(0)
+  })
+})
+
+test.describe('swipe with real touch input, curving off the row', () => {
+  test.skip(({ browserName }) => browserName !== 'chromium', 'touch injection is Chromium-only')
+  async function curved(page: Page, testId: string, dx: number, curve: number) {
+    const cdp = await page.context().newCDPSession(page)
+    const row = page.getByTestId(`preset-${testId}`)
+    await row.scrollIntoViewIfNeeded()
+    const b = (await row.boundingBox())!
+    const x = b.x + b.width - 40
+    const y = b.y + b.height / 2
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] })
+    for (let i = 1; i <= 15; i++) {
+      const t = i / 15
+      const bend = t > 1 / 2 ? curve * ((t - 1 / 2) * 2) ** 2 : 0
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * t, y: y + bend }] })
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
+  }
+  test('a full swipe that curves up off the row still deletes, and nothing scrolls', async ({ page }) => {
+    await openApp(page)
+    const list = page.getByTestId('presets')
+    await page.getByTestId('preset-75').scrollIntoViewIfNeeded()
+    const before = await list.evaluate((el) => el.scrollTop)
+    const w = (await page.getByTestId('preset-75').boundingBox())!.width
+    await curved(page, '75', -w * 0.75, -160)
+    await expect(page.getByTestId('preset-75')).toHaveCount(0)
+    expect(await list.evaluate((el) => el.scrollTop)).toBe(before)
+  })
+  test('a short swipe that curves down off the row still rests open', async ({ page }) => {
+    await openApp(page)
+    await curved(page, '90', -100, 140)
+    await expect.poll(() => offsetOf(page, '90')).toBe(-72)
+  })
+})
