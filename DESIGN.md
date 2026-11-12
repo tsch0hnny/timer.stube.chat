@@ -12,7 +12,7 @@ colors:
   tile-grey-pressed: "#2c2c2e"
 typography:
   digits:
-    fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "system-ui, -apple-system, Roboto, sans-serif"
     fontWeight: 700
     lineHeight: 1
     fontFeature: "'tnum' 1"
@@ -37,13 +37,29 @@ typography:
     fontSize: "1.125rem"
     fontWeight: 700
     lineHeight: 1
+  update:
+    fontFamily: "system-ui, -apple-system, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 600
+    lineHeight: 1
   meta:
     fontFamily: "ui-monospace, Menlo, monospace"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1
+  debug:
+    fontFamily: "ui-monospace, Menlo, monospace"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: 1.4
+  debug-title:
+    fontFamily: "ui-monospace, Menlo, monospace"
+    fontSize: "1rem"
+    fontWeight: 700
+    lineHeight: 1.4
 rounded:
   tile: "1.25rem"
+  debug-button: "0.6rem"
   pill: "999px"
   circle: "50%"
 spacing:
@@ -135,7 +151,7 @@ A black stage with white type and three signal hues, each bound to one meaning.
 
 ## Typography
 
-**Display Font:** system-ui (with -apple-system, Segoe UI, Roboto, sans-serif)
+**Display Font:** system-ui (with -apple-system, Roboto, sans-serif)
 **Body Font:** the same system-ui stack
 **Label/Mono Font:** ui-monospace (with Menlo), version label and debug overlay only
 
@@ -147,7 +163,9 @@ A black stage with white type and three signal hues, each bound to one meaning.
 - **Hint** (700, 1.25rem, 1.2): "Hold to show controls".
 - **Step** (700, 1.375rem, 1, tabular): ±step buttons and the step strip choices.
 - **Confirm** (700, 1.125rem, 1): "End timer?" and the End button.
+- **Update** (600, 0.9375rem, 1): the "Update ready · reload" pill on the presets screen.
 - **Meta** (500, 0.75rem, monospace, dim grey): version label.
+- **Debug** (400, 0.8125rem, 1.4, monospace): the hidden debug overlay's rows, log and section labels (labels uppercase, dim grey); its title is **Debug title** (700, 1rem).
 
 ### Named Rules
 **The Fixed Cell Rule.** Every digit sits in a cell as wide as the widest digit 0–9, measured at runtime from the resolved font (weight 700, tabular-nums); colon and minus get their own measured cells. Cells are keyed from the right so seconds stay the same element when an hour or minus appears.
@@ -176,7 +194,7 @@ Flat black, with one material: glass, used only on controls that float over the 
 
 ## Shapes
 
-Soft and round. Preset tiles have generous corners (1.25rem); every floating control is a circle (play, exit) or a full pill (step, confirm, End, hint, status pill, step strip). No hard corners on interactive elements, no cards, no dividers.
+Soft and round. Preset tiles have generous corners (1.25rem); every floating control is a circle (play, exit) or a full pill (step, confirm, End, hint, status pill, step strip). No hard corners on interactive elements, no cards, no dividers. The one exception is the hidden debug overlay, a diagnostic sheet that is never on stage: its Close and Copy buttons use 0.6rem corners.
 
 ## Components
 

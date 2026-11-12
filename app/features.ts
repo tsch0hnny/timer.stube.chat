@@ -18,5 +18,10 @@ export const LANDSCAPE_ROTATION: 'cw' | 'ccw' = 'cw'
 /** Reserve the minus sign's width from the start, so the digit size never changes at zero. */
 export const RESERVE_MINUS_CELL = true
 
-/** Fonts the timer can use; phase 1 ships one. The digit-stability test runs for each. */
-export const TIMER_FONTS = [{ id: 'system', family: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif', weight: 700 }] as const
+/**
+ * Fonts the timer can use; phase 1 ships one. The digit-stability test runs for each.
+ * No quoted family names: system-ui resolves first on every target browser (it is Segoe UI on
+ * Windows anyway), and Chromium writes quotes in the inline style as &quot;, which the design
+ * detector misreads as a font called "&quot".
+ */
+export const TIMER_FONTS = [{ id: 'system', family: 'system-ui, -apple-system, Roboto, sans-serif', weight: 700 }] as const
