@@ -6,7 +6,8 @@ import { MIN, longPress, openPreset } from './helpers'
 // portrait (CSS-rotated landscape) and a physically landscape viewport, per engine.
 test('screens: presets, paused, running, overtime, picker, wake-lock pill', async ({ page }, info) => {
   const shot = async (name: string) => {
-    await page.waitForTimeout(350) // CSS transitions run on real time, not the fake clock
+    await page.clock.runFor(50) // flush Vue's rAF-driven transition classes (fake clock is paused)
+    await page.waitForTimeout(350) // CSS transitions themselves run on real time
     const path = info.outputPath(`${name}.png`)
     await page.screenshot({ path })
     await info.attach(name, { path, contentType: 'image/png' })

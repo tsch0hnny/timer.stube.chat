@@ -2,6 +2,8 @@ import { expect, type Page } from '@playwright/test'
 
 export const T0 = new Date('2026-11-14T20:00:00Z')
 export const MIN = 60_000
+/** The fake clock is paused here once the app has loaded; after that only runFor() moves time. */
+export const START = new Date(T0.getTime() + 5000)
 
 /** Fake wake lock: 'grant' resolves with a sentinel, 'deny' rejects like WebKit without a tap. */
 export async function mockWakeLock(page: Page, mode: 'grant' | 'deny') {
@@ -23,6 +25,10 @@ export async function openPreset(page: Page, minutes: number, opts: { wakeLock?:
   await mockWakeLock(page, opts.wakeLock ?? 'grant')
   await page.clock.install({ time: T0 })
   await page.goto('/')
+  await expect(page.getByTestId('presets')).toBeVisible()
+  // install() lets fake time flow at real speed; on a slow CI runner that fires the 5 s auto-hide
+  // mid-test. Paused, time only moves through runFor(), so every timing window is deterministic.
+  await page.clock.pauseAt(START)
   await page.getByTestId(`preset-${minutes}`).click()
   await expect(page.getByTestId('timer-view')).toBeVisible()
 }
@@ -43,4 +49,8 @@ export async function longPress(page: Page, ms = 600) {
 export async function tapStage(page: Page) {
   const box = (await page.getByTestId('digits').boundingBox())!
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+}
+/** Lets Vue's leave transitions finish (they wait on rAF and a timeout, both on the paused fake clock). */
+export async function settle(page: Page, ms = 400) {
+  await page.clock.runFor(ms)
 }

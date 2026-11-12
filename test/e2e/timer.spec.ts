@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { MIN, T0, digits, expectTime, longPress, openPreset, tapStage } from './helpers'
+import { MIN, START, digits, expectTime, longPress, openPreset, settle, tapStage } from './helpers'
 
 test.describe('countdown on the real build, driven by a fake clock', () => {
   test('a full 60:00 runs to zero and crosses into overtime in red', async ({ page }) => {
@@ -31,10 +31,9 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect(page.getByTestId('timer-view')).toBeVisible()
     await expect(page.getByTestId('presets')).toHaveCount(0)
     await expect(digits(page)).toHaveClass(/negative/)
-    const label = await digits(page).getAttribute('aria-label')
-    expect(['00:05 over', '00:06 over']).toContain(label) // the reload itself may take a tick
+    await expectTime(page, '00:05 over')
     await page.clock.runFor(60_000)
-    await expect(digits(page)).toHaveAttribute('aria-label', /^01:0[56] over$/)
+    await expectTime(page, '01:05 over')
   })
 
   test('pause for 10 minutes and resume keeps the remaining time', async ({ page }) => {
@@ -63,7 +62,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.reload()
     await expect(page.getByTestId('timer-view')).toBeVisible()
     await page.clock.runFor(MIN)
-    await expect(digits(page)).toHaveAttribute('aria-label', /^2[34]:5\d left$/)
+    await expectTime(page, '24:00 left') // exact: the paused fake clock survives reloads
     await context.setOffline(false)
   })
 
@@ -96,6 +95,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     const ten = (await page.getByTestId('step-choice-10').boundingBox())!
     await page.mouse.move(ten.x + ten.width / 2, ten.y + ten.height / 2, { steps: 4 })
     await page.mouse.up()
+    await settle(page)
     await expect(page.getByTestId('step-strip')).toHaveCount(0)
     await expect(plus).toHaveText('+10')
     await expect(page.getByTestId('step-minus')).toHaveText('−10')
@@ -115,6 +115,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.clock.runFor(4000)
     await expect(page.getByTestId('controls')).toBeVisible()
     await page.clock.runFor(1500)
+    await settle(page)
     await expect(page.getByTestId('controls')).toHaveCount(0)
     await tapStage(page)
     await expect(page.getByTestId('hint')).toHaveText('Hold to show controls')
@@ -122,6 +123,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await longPress(page)
     await expect(page.getByTestId('controls')).toBeVisible()
     await tapStage(page) // tap outside the controls hides them
+    await settle(page)
     await expect(page.getByTestId('controls')).toHaveCount(0)
   })
 
@@ -131,6 +133,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.getByTestId('exit').click()
     await expect(page.getByTestId('exit-confirm')).toBeVisible()
     await page.clock.runFor(3100)
+    await settle(page)
     await expect(page.getByTestId('exit-confirm')).toHaveCount(0)
     await expect(page.getByTestId('timer-view')).toBeVisible()
     await page.getByTestId('exit').click()
@@ -158,7 +161,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await longPress(page)
     for (let i = 0; i < 5; i++) await page.getByTestId('version').click()
     await expect(page.getByTestId('debug')).toBeVisible()
-    await expect(page.getByTestId('debug-stored')).toContainText(`endAt ${new Date(T0.getTime() + 15 * MIN).toISOString().slice(0, 16)}`)
+    await expect(page.getByTestId('debug-stored')).toContainText(`endAt ${new Date(START.getTime() + 15 * MIN).toISOString()}`)
     await expect(page.getByTestId('debug-wake-lock')).toContainText('held')
     await page.getByTestId('debug-close').click()
     await expect(page.getByTestId('debug')).toHaveCount(0)
