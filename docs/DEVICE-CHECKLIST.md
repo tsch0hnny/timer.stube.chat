@@ -76,8 +76,10 @@ alongside other work).
      (The spike's stage stopped 47 px short there.)
    - Take one screenshot in overtime (step down past zero) and send it.
    - **Is the time readable from 1 m and 2 m at an angle, under the brightest light you have?**
-   - Then turn rotation lock off and turn the phone to landscape. **Does the layout follow cleanly?**
-     (iOS's own turning animation is expected here; that's why rotation lock stays on at the gig.)
+   - **Are the digits centred on the short side too, and do the colons sit on the middle of the
+     digits? Is the overtime minus the short bar?**
+   - Rotation lock stays on: with it off iOS turns the page with its own animation, which a web app
+     cannot stop, so it is not part of the stage setup and not tested here.
 10. **The 60-minute run, next to the iPhone's own Clock timer.** Run it on battery, with Auto-Lock at
     30 s.
     - Note the battery %. Set a 60:00 StageTimer (paused).

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { MIN, expectTime, longPress, openPreset, turnToLandscape } from './helpers'
+import { MIN, expectTime, inkMids, longPress, openPreset, turnToLandscape } from './helpers'
 
 type Box = { x: number; y: number; width: number; height: number }
 const round = (b: Box) => ({ x: Math.round(b.x * 100) / 100, y: Math.round(b.y * 100) / 100, w: Math.round(b.width * 100) / 100, h: Math.round(b.height * 100) / 100 })
@@ -126,3 +126,42 @@ for (const [minutes, label, over] of [[15, '15:00 left', '00:05 over'], [75, '1:
     await expectLineOnScreen(page)
   })
 }
+
+test('the digits sit on the centre of the short axis, paused and running, clear of the controls', async ({ page }) => {
+  await openPreset(page, 45)
+  const measure = () => page.evaluate(() => {
+    const safe = document.querySelector<HTMLElement>('.safe')!
+    const box = document.querySelector<HTMLElement>('.digits-box')!
+    const d = document.querySelector<HTMLElement>('[data-testid="digits"]')!
+    const row = document.querySelector<HTMLElement>('.row')
+    const fs = parseFloat(getComputedStyle(d).fontSize)
+    const centre = box.offsetTop + d.offsetTop + d.offsetHeight / 2
+    // Untransformed layout coordinates, so this holds for the rotated stage too.
+    return { off: Math.abs(centre - safe.clientHeight / 2), inkBottom: centre + 0.4 * fs, rowTop: row ? row.offsetTop : Infinity }
+  })
+  for (const turn of [false, true]) {
+    if (turn) await turnToLandscape(page)
+    const paused = await measure()
+    expect(paused.off).toBeLessThanOrEqual(1)
+    expect(paused.inkBottom).toBeLessThanOrEqual(paused.rowTop)
+  }
+  await page.getByTestId('play').click()
+  await page.clock.runFor(6000) // controls gone
+  expect((await measure()).off).toBeLessThanOrEqual(1)
+})
+
+test('the colon and the minus sit on the digits\' centre line', async ({ page }) => {
+  await openPreset(page, 15)
+  await turnToLandscape(page) // upright text for the pixel read
+  const check = async () => {
+    const cells = await inkMids(page)
+    const digit = cells.find((c) => /\d/.test(c.ch ?? ''))!.mid
+    for (const c of cells.filter((c) => !/\d/.test(c.ch ?? ''))) expect(Math.abs(c.mid - digit), `${c.ch} at ${c.mid.toFixed(3)} em, digits at ${digit.toFixed(3)} em`).toBeLessThanOrEqual(0.02)
+    return cells.map((c) => c.ch).join('')
+  }
+  expect(await check()).toBe('15:00')
+  await page.getByTestId('play').click()
+  await page.clock.runFor(15 * MIN + 5000)
+  await expect.poll(() => page.evaluate(() => document.querySelector('[data-testid="digits"]')!.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length)).toBe(0)
+  expect(await check()).toMatch(/^.00:05$/)
+})

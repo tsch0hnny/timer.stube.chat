@@ -249,11 +249,12 @@ const display = timer.display
   width: 100%;
   height: 100%;
 }
-/* The digit box always leaves room for the control row, paused or running, so the digits never
-   move when the controls appear and the controls never cover them. */
+/* The digits are centred on the short axis, paused or running, so they never move when the controls
+   appear. The controls never cover them: TimerDigits caps the size so the ink stays clear of --band. */
 .digits-box {
+  --band: calc(var(--play-size) + var(--row-bottom) + 0.75rem);
   position: absolute;
-  inset: 4% 3% calc(var(--play-size) + var(--row-bottom) + 0.75rem);
+  inset: 0 3%;
   container-type: size;
   display: grid;
   place-items: center;

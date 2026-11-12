@@ -125,6 +125,9 @@ onBeforeUnmount(() => timers.forEach((t) => clearTimeout(t)))
 .scroller {
   height: 100%;
   overflow-y: scroll;
+  /* The drum's 3D tilt makes rows a little wider than the column; never let that scroll sideways. */
+  overflow-x: hidden;
+  touch-action: pan-y;
   scroll-snap-type: y mandatory;
   overscroll-behavior: contain;
   padding: calc(var(--row) * (var(--rows) - 1) / 2) 0;

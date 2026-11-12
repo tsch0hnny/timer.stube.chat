@@ -19,7 +19,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect(digits(page)).toHaveCSS('color', 'rgb(255, 69, 58)')
     await page.clock.runFor(2 * MIN + 15_000)
     await expectTime(page, '02:15 over')
-    expect(await page.getByTestId('cell').first().textContent()).toBe('−')
+    expect(await page.getByTestId('cell').first().textContent()).toBe('-') // MINUS_GLYPH: the owner's short bar
   })
 
   test('reload during overtime comes back in overtime with the right value', async ({ page }) => {

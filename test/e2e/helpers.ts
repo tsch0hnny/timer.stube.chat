@@ -77,3 +77,39 @@ export async function turnToLandscape(page: Page) {
 export async function settle(page: Page, ms = 400) {
   await page.clock.runFor(ms)
 }
+
+/**
+ * Vertical centre of each cell's ink in the digit line, in em from the line's top, read from a
+ * screenshot of the line (decoded in the page, so no image library is needed). Upright text only:
+ * use a landscape viewport, where the stage is not rotated.
+ */
+export async function inkMids(page: Page) {
+  const line = page.locator('[data-testid="digits"] .line')
+  const png = (await line.screenshot()).toString('base64')
+  return page.evaluate(async (png) => {
+    const img = new Image()
+    img.src = `data:image/png;base64,${png}`
+    await img.decode()
+    const c = document.createElement('canvas')
+    c.width = img.width; c.height = img.height
+    const ctx = c.getContext('2d')!
+    ctx.drawImage(img, 0, 0)
+    const d = ctx.getImageData(0, 0, c.width, c.height).data
+    const host = document.querySelector('[data-testid="digits"] .line')!
+    const hb = host.getBoundingClientRect()
+    const scale = img.width / hb.width
+    const em = parseFloat(getComputedStyle(host).fontSize)
+    return [...host.querySelectorAll('[data-testid="cell"]')].map((cell) => {
+      const r = cell.getBoundingClientRect()
+      const x0 = Math.round((r.left - hb.left) * scale), x1 = Math.round((r.right - hb.left) * scale)
+      let top = -1, bottom = -1
+      for (let y = 0; y < c.height; y++) {
+        for (let x = x0; x < x1; x++) {
+          const i = (y * c.width + x) * 4
+          if (Math.max(d[i]!, d[i + 1]!, d[i + 2]!) > 128) { if (top < 0) top = y; bottom = y; break }
+        }
+      }
+      return { ch: cell.textContent, mid: (top + bottom) / 2 / scale / em }
+    })
+  }, png)
+}

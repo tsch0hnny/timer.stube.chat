@@ -19,6 +19,15 @@ export const LANDSCAPE_ROTATION: 'cw' | 'ccw' = 'cw'
 export const RESERVE_MINUS_CELL = true
 
 /**
+ * The glyph drawn for the minus sign in overtime. The text itself always carries U+2212; only the
+ * drawing changes. With the 'case' feature every candidate sits on the digits' centre (measured in
+ * WebKit and Chromium with SF Pro): minus U+2212 0.647 em wide, en dash 0.576 em, hyphen 0.441 em.
+ * The owner chose the hyphen (12 Nov): the shortest bar, and the narrower reserved cell lets the
+ * digits grow about 4%.
+ */
+export const MINUS_GLYPH: string = '-'
+
+/**
  * Fonts the timer can use; phase 1 ships one. The digit-stability test runs for each.
  * No quoted family names: system-ui resolves first on every target browser (it is Segoe UI on
  * Windows anyway), and Chromium writes quotes in the inline style as &quot;, which the design

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { MINUS } from '#shared/timer/display'
-import { RESERVE_MINUS_CELL, TIMER_FONTS } from '~/features'
+import { MINUS_GLYPH, RESERVE_MINUS_CELL, TIMER_FONTS } from '~/features'
 import { lineEm, measureCellWidths, type CellWidths } from '~/utils/digitMetrics'
 
 const props = defineProps<{
@@ -16,7 +16,7 @@ const props = defineProps<{
 
 const font = TIMER_FONTS[0]
 const widths = ref<CellWidths>({ digit: 0.62, colon: 0.32, minus: 0.62 })
-onMounted(() => { widths.value = measureCellWidths(font.family, font.weight) })
+onMounted(() => { widths.value = measureCellWidths(font.family, font.weight, MINUS_GLYPH) })
 
 // Cells are keyed from the right, so seconds stay the same element when the minus or the hour appears.
 const cells = computed(() => {
@@ -25,6 +25,7 @@ const cells = computed(() => {
     ch,
     key: chars.length - i,
     kind: ch === ':' ? 'colon' : ch === MINUS ? 'minus' : 'digit',
+    glyph: ch === MINUS ? MINUS_GLYPH : ch,
   }))
 })
 const style = computed(() => ({
@@ -77,7 +78,7 @@ watch(
     data-testid="digits"
   >
     <span :key="`shake-${shakeKey}`" class="line">
-      <span v-for="c in cells" :key="c.key" class="cell" :class="c.kind" data-testid="cell" aria-hidden="true">{{ c.ch }}</span>
+      <span v-for="c in cells" :key="c.key" class="cell" :class="c.kind" data-testid="cell" aria-hidden="true">{{ c.glyph }}</span>
     </span>
   </div>
 </template>
@@ -88,7 +89,9 @@ watch(
   color: #fff;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
+  /* 'case' lifts the colon and the minus to the centre of the figures, as on the iOS Clock (without
+     it SF Pro sets the colon 0.11 em low and the minus 0.07 em low, measured in WebKit and Chromium). */
+  font-feature-settings: 'tnum' 1, 'case' 1;
   white-space: nowrap;
   display: flex;
   justify-content: center;
@@ -96,8 +99,10 @@ watch(
   -webkit-user-select: none;
 }
 .digits.fit {
-  /* Width-limited by the line (in em), height-limited by the box: as big as legibly fits. */
-  font-size: min(calc(100cqw / var(--line-em)), 92cqh);
+  /* Width-limited by the line (in em), height-limited by the box: as big as legibly fits. The third
+     term keeps the ink (about 0.37 em below the line's centre) clear of the control band (--band,
+     set by the box) when the line is centred, on any screen shape; on a phone the width wins. */
+  font-size: min(calc(100cqw / var(--line-em)), 92cqh, calc((100cqh - 2 * var(--band, 0px)) / 0.76));
 }
 .digits.negative { color: var(--overtime); }
 .line { display: inline-flex; }

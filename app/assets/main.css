@@ -51,7 +51,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font: 400 1.0625rem / 1 system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
   touch-action: manipulation;
-  transition: filter 120ms ease-out;
+  transition: filter 120ms ease-out, background-color 240ms ease-out, color 240ms ease-out, box-shadow 240ms ease-out;
 }
 .btn-round.btn-go { --fill: var(--go-fill); color: var(--go); }
 .btn-round:active:not(:disabled) { filter: brightness(1.45); }

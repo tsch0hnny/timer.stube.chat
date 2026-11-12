@@ -68,6 +68,8 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
       </template>
       <label class="cell">
         <span>Start right away</span>
+        <!-- The visible switch is plain spans; the checkbox is an invisible tap area on top, so no
+             browser's own form-control rendering (iOS sizes checkboxes its own way) can bend it. -->
         <span class="switch">
           <input
             type="checkbox"
@@ -76,15 +78,15 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
             data-testid="start-on-tap"
             @change="timer.setStartOnTap(($event.target as HTMLInputElement).checked)"
           >
-          <span class="knob" aria-hidden="true" />
+          <span class="track" aria-hidden="true"><span class="knob" /></span>
         </span>
       </label>
     </div>
 
     <div class="listcol">
       <h2 class="heading">Presets</h2>
-      <ul class="list" role="list">
-        <li v-for="r in rows" :key="r.id">
+      <ul class="list" :class="{ on: startOnTap }" role="list">
+        <li v-for="(r, i) in rows" :key="r.id" :style="{ '--i': i }">
           <button
             type="button"
             class="preset"
@@ -94,8 +96,11 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
           >
             <span class="time">{{ r.text }}</span>
             <span class="words">{{ r.words }}</span>
-            <span v-if="startOnTap" class="go" aria-hidden="true"><PhPlay :size="18" weight="fill" /></span>
-            <PhCaretRight v-else class="chevron" :size="18" weight="bold" aria-hidden="true" />
+            <!-- One slot for both, so they share a centre; the switch cross-fades them. -->
+            <span class="slot" aria-hidden="true">
+              <PhCaretRight class="chevron" :size="18" weight="bold" />
+              <span class="go"><PhPlay :size="18" weight="fill" /></span>
+            </span>
           </button>
         </li>
       </ul>
@@ -118,6 +123,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   right: 0;
   height: var(--app-h, 100dvh);
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   padding:
     calc(env(safe-area-inset-top) + 0.75rem)
@@ -166,16 +172,22 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 .switch { position: relative; flex: none; width: 51px; height: 31px; }
 .switch input {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
+  opacity: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+.track {
+  position: absolute;
+  inset: 0;
   border-radius: 999px;
   background: var(--fill-quiet);
-  cursor: pointer;
   transition: background-color 200ms ease-out;
 }
-.switch input:checked { background: var(--go); }
 .knob {
   position: absolute;
   top: 2px;
@@ -184,11 +196,11 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   height: 27px;
   border-radius: 50%;
   background: #fff;
-  pointer-events: none;
   transition: transform 220ms cubic-bezier(0.3, 0.7, 0.4, 1);
 }
-.switch input:checked + .knob { transform: translateX(20px); }
-.switch input:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.switch input:checked + .track { background: var(--go); }
+.switch input:checked + .track .knob { transform: translateX(20px); }
+.switch input:focus-visible + .track { outline: 3px solid #fff; outline-offset: 3px; }
 
 .heading {
   margin: 2rem 0 0.25rem;
@@ -225,6 +237,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   grid-column: 1;
   font: 300 2.5rem / 1.08 system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'case' 1; /* colons on the figures' centre, as in Clock */
   letter-spacing: -0.01em;
 }
 .words {
@@ -232,7 +245,22 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   font: 400 0.9375rem / 1.3 system-ui, -apple-system, sans-serif;
   color: var(--dim);
 }
-.go, .chevron { grid-column: 2; grid-row: 1 / span 2; }
+.slot {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+/* Chevron out, play disc in (and back), rippling down the list: each row 18 ms after the one above. */
+.slot > * {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  transition: opacity 180ms ease-out, transform 280ms cubic-bezier(0.3, 0.7, 0.4, 1);
+  transition-delay: calc(var(--i, 0) * 18ms);
+}
+.chevron { color: var(--chevron); }
 .go {
   width: 2.5rem;
   height: 2.5rem;
@@ -241,9 +269,12 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   border-radius: 50%;
   background: var(--go-fill);
   color: var(--go);
+  opacity: 0;
+  transform: scale(0.4);
 }
 .go :deep(svg) { transform: translateX(1px); }
-.chevron { color: var(--chevron); }
+.list.on .chevron { opacity: 0; transform: translateX(-0.5rem); }
+.list.on .go { opacity: 1; transform: none; }
 
 .foot {
   display: flex;
@@ -288,6 +319,8 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .knob, .switch input, .preset { transition: none; }
+  .knob, .track, .preset { transition: none; }
+  .slot > * { transition: opacity 150ms linear; transition-delay: 0ms; }
+  .list.on .chevron, .go, .list.on .go { transform: none; }
 }
 </style>

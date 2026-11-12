@@ -108,3 +108,43 @@ test('the wheel opens on the last length set with it; reset dials it back to 0:0
   await page.reload() // resetting alone does not forget the last length set
   await expect.poll(at).toEqual(['1', '7', '30'])
 })
+
+test('wheel columns scroll vertically only: a sideways swipe or wheel does not move them', async ({ page, browserName }) => {
+  await openApp(page)
+  for (const c of ['hours', 'minutes', 'seconds']) {
+    const col = page.getByTestId(`wheel-${c}`)
+    const o = await col.evaluate((el) => ({ ox: getComputedStyle(el).overflowX, ta: getComputedStyle(el).touchAction }))
+    expect(o).toEqual({ ox: 'hidden', ta: 'pan-y' }) // touch: vertical pans only
+    if (browserName === 'webkit') continue // Playwright's mobile WebKit has no mouse wheel
+    const b = (await col.boundingBox())!
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2)
+    await page.mouse.wheel(120, 0)
+    await page.waitForTimeout(100)
+    expect(await col.evaluate((el) => el.scrollLeft), c).toBe(0)
+  }
+})
+
+test('"Start right away": the whole switch is the tap target, and a tap on the words works too', async ({ page }) => {
+  await openApp(page)
+  const input = page.getByTestId('start-on-tap')
+  const sw = (await page.locator('.switch').boundingBox())!
+  const box = (await input.boundingBox())!
+  expect([Math.round(box.width), Math.round(box.height)]).toEqual([Math.round(sw.width), Math.round(sw.height)])
+  await page.mouse.click(sw.x + sw.width - 6, sw.y + sw.height / 2) // the right end of the track
+  await expect(input).toBeChecked()
+  await page.getByText('Start right away').click()
+  await expect(input).not.toBeChecked()
+})
+
+test('toggling "Start right away" swaps chevrons and play buttons in the same spot', async ({ page }) => {
+  await openApp(page)
+  const row = page.getByTestId('preset-30')
+  const centre = async (sel: string) => {
+    await expect.poll(() => row.evaluate((el) => el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length)).toBe(0)
+    const b = (await row.locator(sel).boundingBox())!
+    return [Math.round(b.x + b.width / 2), Math.round(b.y + b.height / 2)]
+  }
+  const chevron = await centre('.chevron')
+  await page.getByTestId('start-on-tap').check()
+  expect(await centre('.go')).toEqual(chevron)
+})

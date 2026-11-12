@@ -26,14 +26,14 @@ typography:
     fontFamily: "system-ui, -apple-system, Roboto, sans-serif"
     fontWeight: 700
     lineHeight: 1
-    fontFeature: "'tnum' 1"
+    fontFeature: "'tnum' 1, 'case' 1"
   preset-time:
     fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "2.5rem"
     fontWeight: 300
     lineHeight: 1.08
     letterSpacing: "-0.01em"
-    fontFeature: "'tnum' 1"
+    fontFeature: "'tnum' 1, 'case' 1"
   heading:
     fontFamily: "system-ui, -apple-system, sans-serif"
     fontSize: "1.375rem"
@@ -242,7 +242,7 @@ components:
 
 StageTimer takes the category standard on purpose. The Presets screen is Apple's countdown timer: a three-column wheel with a grey selection band, two big round tinted buttons, one grouped switch cell, and a list in the Recents format. Familiarity is the point; craft is the bar, measured against Apple Clock, Fitness/Workout and Music Now Playing. Nothing on the screen should need explaining to someone who has set a timer on an iPhone.
 
-The one deviation is the product itself: the stage. Where Apple draws a ring, StageTimer draws one full-screen line of heavy white digits on pure black, in landscape, sized to the largest that fits legibly and built from fixed-width cells so no digit ever moves. While running, the stage shows the time and nothing else; a long press brings back the control row. At zero the line shakes once, turns red, and a minus fades in from a cell that was reserved for it all along.
+The one deviation is the product itself: the stage. Where Apple draws a ring, StageTimer draws one full-screen line of heavy white digits on pure black, in landscape, sized to the largest that fits legibly and built from fixed-width cells so no digit ever moves. While running, the stage shows the time and nothing else; a long press brings back the control row. At zero the line shakes once, turns red, and a minus fades in from a cell that was reserved for it all along. The line is centred on both axes of the stage; the control row fits below the ink because a size cap keeps the digits clear of it on any screen shape.
 
 Surfaces are flat and opaque. The earlier liquid-glass treatment was removed with this redesign; controls are iOS fills on black, separated by tone and hairlines, never by blur or shadow. Colour carries meaning and nothing else: one hue per meaning, white for everything that is just information.
 
@@ -311,6 +311,8 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 **The Device Font Rule.** system-ui only. No downloaded fonts, no SF files, no monospace outside the debug overlay.
 
 **The Measured Cell Rule.** Every stage digit sits in a fixed-width cell measured from the device font at runtime (digit, colon and minus widths in em). The line is sized against its widest form with the minus cell reserved, so the font size never changes at zero and no digit ever shifts.
+
+**The Centred Punctuation Rule.** Digits use the 'case' feature, so colons (on stage and in the preset list) and the minus sit on the figures' centre line, as on the iOS Clock; without it SF Pro sets the colon 0.11 em low. The overtime minus is drawn as a hyphen (the owner's short bar, 0.441 em), while the text and the accessible label keep a true minus.
 
 ## Layout
 

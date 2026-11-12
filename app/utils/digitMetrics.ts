@@ -11,16 +11,17 @@ export interface CellWidths {
  * Measures the real font on this device, so every digit cell is as wide as the widest digit and
  * nothing moves when a digit changes, whatever system-ui resolves to (SF Pro, Roboto, …).
  */
-export function measureCellWidths(family: string, weight: number): CellWidths {
+export function measureCellWidths(family: string, weight: number, minusGlyph: string = MINUS): CellWidths {
   const el = document.createElement('span')
-  el.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre;font:${weight} 100px ${family};font-variant-numeric:tabular-nums`
+  // Same features as the digits on screen ('case' changes the colon's and the dash's glyphs).
+  el.style.cssText = `position:absolute;left:-9999px;top:0;visibility:hidden;white-space:pre;font:${weight} 100px ${family};font-feature-settings:'tnum' 1,'case' 1`
   document.body.appendChild(el)
   const em = (ch: string) => { el.textContent = ch; return el.getBoundingClientRect().width / 100 }
   const round = (x: number) => Math.ceil(x * 1000) / 1000
   const widths = {
     digit: round(Math.max(...[...'0123456789'].map(em))),
     colon: round(em(':')),
-    minus: round(em(MINUS)),
+    minus: round(em(minusGlyph)),
   }
   el.remove()
   return widths
