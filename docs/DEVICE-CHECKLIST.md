@@ -11,9 +11,12 @@ alongside other work).
 
 - Delete the old "Spike" and "StageTimer" icons from the home screen. WebKit fixes some layout at
   install time, and an installed app never picks up a changed icon.
-- First candidate after the spike only: Settings → Apps → Safari → Advanced → Website Data, find
-  test-timer.stube.chat and delete it. Otherwise the Safari tab keeps showing the spike from its
-  cache, and Add to Home Screen would install the spike's name and icon for good.
+- First candidate after the spike only: the Safari tab may still show the spike from its cache, and
+  Add to Home Screen would then install the spike's name and icon for good. Open test-timer in
+  Safari; if it shows the spike, close that tab in the tab overview, wait a few seconds and open the
+  URL in a new tab. If it still shows the spike, delete **stube.chat** under Settings → Apps →
+  Safari → Advanced → Website Data (iOS lists whole domains, not test-timer.stube.chat; this also
+  signs Safari out of other stube.chat sites).
 - Settings → Display & Brightness → **Auto-Lock: 30 seconds** for the test, so that a missing wake
   lock shows within 30 s. (For the gig itself it gets set to Never; see SOUNDCHECK.md.)
 - Low Power Mode off; Date & Time → Set Automatically on.
