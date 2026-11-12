@@ -148,3 +148,18 @@ test('toggling "Start right away" swaps chevrons and play buttons in the same sp
   await page.getByTestId('start-on-tap').check()
   expect(await centre('.go')).toEqual(chevron)
 })
+
+test('no double-tap zoom and no text selection, except in the debug sheet', async ({ page }) => {
+  await openApp(page)
+  for (const sel of ['body', '[data-testid="presets"]']) {
+    expect(await page.locator(sel).evaluate((el) => getComputedStyle(el).touchAction), sel).toBe('manipulation')
+  }
+  const selected = () => page.evaluate(() => getSelection()?.toString() ?? '')
+  for (const sel of ['.heading', '.cell span', '[data-testid="preset-75"] .words']) {
+    await page.locator(sel).first().dblclick()
+    expect(await selected(), sel).toBe('')
+  }
+  for (let i = 0; i < 5; i++) await page.getByTestId('version').click()
+  await page.getByTestId('debug-version').dblclick({ position: { x: 12, y: 8 } }) // on the text, not the empty end of the row
+  expect(await selected()).not.toBe('') // the report stays selectable
+})

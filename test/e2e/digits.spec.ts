@@ -170,3 +170,19 @@ test('the colon and the minus sit on the digits\' centre line', async ({ page })
   await expect.poll(() => page.evaluate(() => document.querySelector('[data-testid="digits"]')!.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length)).toBe(0)
   expect(await check()).toMatch(/^.00:05$/)
 })
+
+test('the shake plays at a live zero crossing only, never when a later timer opens', async ({ page }) => {
+  const lineAnims = () => page.evaluate(() => document.querySelector('[data-testid="digits"] .line')!.getAnimations().length)
+  await openPreset(page, 15)
+  expect(await lineAnims()).toBe(0)
+  await page.getByTestId('play').click()
+  await page.clock.runFor(15 * MIN + 1000)
+  expect(await lineAnims()).toBe(1) // the "over" shake
+  await page.clock.runFor(8000)
+  await longPress(page)
+  await page.getByTestId('exit').click()
+  await page.getByTestId('exit-confirm-end').click()
+  await page.getByTestId('preset-30').click()
+  await expect(page.getByTestId('timer-view')).toBeVisible()
+  expect(await lineAnims()).toBe(0) // e139fa4 replayed the shake here
+})

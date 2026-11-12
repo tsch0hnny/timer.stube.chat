@@ -124,6 +124,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   height: var(--app-h, 100dvh);
   overflow-y: auto;
   overflow-x: hidden;
+  touch-action: manipulation; /* a scroll container: html's value does not reach in here */
   overscroll-behavior: contain;
   padding:
     calc(env(safe-area-inset-top) + 0.75rem)

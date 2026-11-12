@@ -65,19 +65,39 @@ watch(
   },
   { flush: 'post' },
 )
+
+/*
+ * Apple-style "no" shake: quick, decaying, once, at a live crossing into overtime only (shakeKey
+ * counts those). Played as a one-off animation: as a class it stayed on after the first overtime
+ * and replayed every time a later timer opened (seen on the iPhone with c190046).
+ */
+const SHAKE: Keyframe[] = [0, -0.09, 0.08, -0.06, 0.04, -0.02, 0.01, 0].map((x, i) => ({
+  offset: [0, 0.12, 0.26, 0.4, 0.54, 0.68, 0.82, 1][i],
+  transform: `translateX(${x}em)`,
+  easing: 'cubic-bezier(0.36, 0.07, 0.19, 0.97)',
+}))
+watch(
+  () => props.shakeKey,
+  (k, was) => {
+    if (!props.shake || k <= (was ?? 0)) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    root.value?.querySelector('.line')?.animate(SHAKE, { duration: 620 })
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
   <div
     ref="root"
     class="digits"
-    :class="{ fit, negative, shaking: shake && shakeKey > 0 }"
+    :class="{ fit, negative }"
     :style="style"
     role="timer"
     :aria-label="label"
     data-testid="digits"
   >
-    <span :key="`shake-${shakeKey}`" class="line">
+    <span class="line">
       <span v-for="c in cells" :key="c.key" class="cell" :class="c.kind" data-testid="cell" aria-hidden="true">{{ c.glyph }}</span>
     </span>
   </div>
@@ -111,18 +131,4 @@ watch(
 .cell.colon { width: var(--cell-colon); }
 .cell.minus { width: var(--cell-minus); }
 
-/* Apple-style "no" shake: quick, decaying, once. Keyed by shakeKey so it replays per crossing. */
-.digits.shaking .line { animation: shake 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  12% { transform: translateX(-0.09em); }
-  26% { transform: translateX(0.08em); }
-  40% { transform: translateX(-0.06em); }
-  54% { transform: translateX(0.04em); }
-  68% { transform: translateX(-0.02em); }
-  82% { transform: translateX(0.01em); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .digits.shaking .line { animation: none; }
-}
 </style>
