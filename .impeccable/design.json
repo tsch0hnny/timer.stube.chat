@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-12T04:40:00Z",
+  "title": "Design System: StageTimer",
+  "extensions": {
+    "colorMeta": {
+      "stage-black": { "role": "neutral", "displayName": "Stage Black", "canonical": "#000000", "tonalRamp": ["#000000", "#0a0a0a", "#141414", "#1f1f1f", "#2b2b2b", "#3a3a3a", "#4d4d4d", "#666666"] },
+      "digit-white": { "role": "primary", "displayName": "Digit White", "canonical": "#ffffff", "tonalRamp": ["#8c8c8c", "#a3a3a3", "#b8b8b8", "#cccccc", "#dedede", "#ebebeb", "#f5f5f5", "#ffffff"] },
+      "overtime-red": { "role": "secondary", "displayName": "Overtime Red", "canonical": "#ff453a", "tonalRamp": ["oklch(15% 0.05 28)", "oklch(27% 0.10 28)", "oklch(39% 0.15 28)", "oklch(52% 0.20 28)", "oklch(66% 0.22 28)", "oklch(76% 0.15 28)", "oklch(86% 0.08 28)", "oklch(95% 0.03 28)"] },
+      "caution-amber": { "role": "secondary", "displayName": "Caution Amber", "canonical": "#ffd60a", "tonalRamp": ["oklch(15% 0.03 95)", "oklch(28% 0.06 95)", "oklch(41% 0.09 95)", "oklch(54% 0.12 95)", "oklch(67% 0.15 95)", "oklch(78% 0.17 95)", "oklch(88% 0.18 95)", "oklch(95% 0.07 95)"] },
+      "end-red": { "role": "tertiary", "displayName": "End Red", "canonical": "#d70015", "tonalRamp": ["oklch(15% 0.06 27)", "oklch(27% 0.11 27)", "oklch(40% 0.17 27)", "oklch(55% 0.22 27)", "oklch(66% 0.18 27)", "oklch(76% 0.12 27)", "oklch(86% 0.07 27)", "oklch(95% 0.02 27)"] },
+      "dim-grey": { "role": "neutral", "displayName": "Dim Grey", "canonical": "#8e8e93", "tonalRamp": ["oklch(15% 0.004 286)", "oklch(27% 0.005 286)", "oklch(39% 0.006 286)", "oklch(51% 0.007 286)", "oklch(64% 0.008 286)", "oklch(75% 0.006 286)", "oklch(85% 0.004 286)", "oklch(95% 0.002 286)"] },
+      "tile-grey": { "role": "neutral", "displayName": "Tile Grey", "canonical": "#1c1c1e", "tonalRamp": ["#000000", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#48484a", "#636366", "#8e8e93", "#c7c7cc"] },
+      "tile-grey-pressed": { "role": "neutral", "displayName": "Tile Grey Pressed", "canonical": "#2c2c2e", "tonalRamp": ["#000000", "#1c1c1e", "#2c2c2e", "#3a3a3c", "#48484a", "#636366", "#8e8e93", "#c7c7cc"] }
+    },
+    "typographyMeta": {
+      "digits": { "displayName": "Digits", "purpose": "The timer line. Timer view: min(100cqw / line-em, 92cqh) of the digit box; preset tiles: 100cqw / 4.3 of the tile. Fixed cells measured from the device font, minus cell reserved." },
+      "step": { "displayName": "Step", "purpose": "±step labels and step strip choices, tabular." },
+      "notice": { "displayName": "Notice", "purpose": "Amber status pills." },
+      "hint": { "displayName": "Hint", "purpose": "The glass 'Hold to show controls' hint." },
+      "confirm": { "displayName": "Confirm", "purpose": "'End timer?' and the End button." },
+      "meta": { "displayName": "Meta", "purpose": "Version label (dim grey) and debug overlay." }
+    },
+    "shadows": [
+      { "name": "glass-rim", "value": "inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06)", "purpose": "Rim light on every glass control, with a 1px rgb(255 255 255 / 0.24) stroke. No outer shadow." }
+    ],
+    "motion": [
+      { "name": "fade", "value": "opacity 220ms ease-out", "purpose": "Controls, hint and exit confirm in/out; also the reduced-motion replacement for the zero glide." },
+      { "name": "press", "value": "background-color 120ms ease-out, transform 120ms ease-out", "purpose": "Glass and preset tile press feedback (tile scale 0.97, none with reduced motion)." },
+      { "name": "icon-morph", "value": "opacity 120ms ease-out, transform 160ms cubic-bezier(0.2, 0.9, 0.3, 1)", "purpose": "Play/pause swap from scale 0.6 and ±30°; reduced motion: opacity only." },
+      { "name": "strip-open", "value": "opacity 160ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Step strip open/close (scaleY from 0.6); reduced motion: opacity 120ms linear." },
+      { "name": "zero-shake", "value": "620ms cubic-bezier(0.36, 0.07, 0.19, 0.97)", "purpose": "One decaying horizontal shake (peak ±0.09em) per live zero crossing; none with reduced motion." },
+      { "name": "zero-glide", "value": "560ms cubic-bezier(0.65, 0, 0.35, 1)", "purpose": "Glide from the old centre to the new one when the minus appears or goes; 220ms fade with reduced motion." }
+    ],
+    "breakpoints": [
+      { "name": "orientation-landscape", "value": "(orientation: landscape)", "purpose": "Presets switch 3×4 to 4×3; timer view drops the CSS rotation." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Preset Tile",
+      "kind": "card",
+      "refersTo": "preset-tile",
+      "description": "Plain filled tap target showing the preset duration in the timer's own digits.",
+      "html": "<button class=\"ds-tile\"><span class=\"ds-tile-digits\">1:15:00</span></button>",
+      "css": ".ds-tile { width: 180px; height: 220px; display: grid; place-items: center; border: 0; border-radius: 1.25rem; background: var(--tile, #1c1c1e); color: #fff; cursor: pointer; transition: background-color 120ms ease-out, transform 120ms ease-out; } .ds-tile-digits { font: 700 2.6rem/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-numeric: tabular-nums; } .ds-tile:active { background: var(--tile-pressed, #2c2c2e); transform: scale(0.97); } .ds-tile:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Play Button",
+      "kind": "button",
+      "refersTo": "play-button",
+      "description": "Glass circle centred in the control band, Phosphor play (fill).",
+      "html": "<button class=\"ds-glass ds-play\" aria-label=\"Start\"><svg width=\"38\" height=\"38\" viewBox=\"0 0 256 256\" fill=\"currentColor\" style=\"transform: translateX(3px)\"><path d=\"M240,128a15.74,15.74,0,0,1-7.6,13.51L88.32,229.65a16,16,0,0,1-16.2.3A15.86,15.86,0,0,1,64,216.13V39.87a15.86,15.86,0,0,1,8.12-13.82,16,16,0,0,1,16.2.3L232.4,114.49A15.74,15.74,0,0,1,240,128Z\"/></svg></button>",
+      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out, transform 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-play { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; }"
+    },
+    {
+      "name": "Pause Button",
+      "kind": "button",
+      "refersTo": "play-button",
+      "description": "The same glass circle while running, Phosphor pause (fill).",
+      "html": "<button class=\"ds-glass ds-play\" aria-label=\"Pause\"><svg width=\"38\" height=\"38\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M216,48V208a16,16,0,0,1-16,16H160a16,16,0,0,1-16-16V48a16,16,0,0,1,16-16h40A16,16,0,0,1,216,48ZM96,32H56A16,16,0,0,0,40,48V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V48A16,16,0,0,0,96,32Z\"/></svg></button>",
+      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-play { width: 5rem; height: 5rem; display: grid; place-items: center; border-radius: 50%; }"
+    },
+    {
+      "name": "Step Button",
+      "kind": "button",
+      "refersTo": "step-button",
+      "description": "Glass pill for ±step; hold opens the step strip.",
+      "html": "<button class=\"ds-glass ds-step\">+5</button>",
+      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out, transform 120ms ease-out; cursor: pointer; } .ds-glass:active { background: rgb(255 255 255 / 0.2); } .ds-glass:focus-visible { outline: 3px solid #fff; outline-offset: 3px; } .ds-step { min-width: 3.75rem; height: 3.75rem; padding: 0 0.6em; border-radius: 1.875rem; font: 700 1.375rem/1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Step Strip",
+      "kind": "custom",
+      "refersTo": "step-choice-active",
+      "description": "Near-opaque vertical picker (15, 10, 5, 1) opened by holding a step button; highlighted choice is white with black text.",
+      "html": "<div class=\"ds-strip\" role=\"listbox\"><div class=\"ds-choice\">15</div><div class=\"ds-choice\">10</div><div class=\"ds-choice ds-active\">5</div><div class=\"ds-choice\">1</div></div>",
+      "css": ".ds-strip { width: 4.3rem; border-radius: 1.875rem; overflow: hidden; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(28 28 30 / 0.94); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); } .ds-choice { height: 3.75rem; display: grid; place-items: center; font: 700 1.375rem/1 system-ui, -apple-system, sans-serif; font-variant-numeric: tabular-nums; color: rgb(255 255 255 / 0.85); } .ds-choice:hover, .ds-active { background: #fff; color: #000; }"
+    },
+    {
+      "name": "Exit Button with Confirm",
+      "kind": "button",
+      "refersTo": "exit-button",
+      "description": "Glass circle with Phosphor X (bold); while running it opens an inline 'End timer?' glass pill with the End-red button.",
+      "html": "<div class=\"ds-exit\"><button class=\"ds-glass ds-exit-btn\" aria-label=\"Back to presets\"><svg width=\"28\" height=\"28\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z\"/></svg></button><div class=\"ds-glass ds-confirm\"><span>End timer?</span><button class=\"ds-end\">End</button></div></div>",
+      "css": ".ds-glass { color: #fff; border: 1px solid rgb(255 255 255 / 0.24); background: rgb(255 255 255 / 0.1); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -1px 0 rgb(255 255 255 / 0.06); transition: background-color 120ms ease-out; } .ds-exit { display: flex; align-items: center; gap: 0.6rem; } .ds-exit-btn { width: 3.25rem; height: 3.25rem; display: grid; place-items: center; border-radius: 50%; cursor: pointer; } .ds-exit-btn:active { background: rgb(255 255 255 / 0.2); } .ds-confirm { display: flex; align-items: center; gap: 0.75rem; padding: 0.35rem 0.4rem 0.35rem 1rem; border-radius: 999px; font: 700 1.125rem/1 system-ui, -apple-system, sans-serif; } .ds-end { padding: 0.6rem 1.1rem; border-radius: 999px; border: 0; background: var(--destructive, #d70015); color: #fff; font: inherit; cursor: pointer; } .ds-exit-btn:focus-visible, .ds-end:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Amber pill with black text, shown only when something threatens the show.",
+      "html": "<p class=\"ds-pill\" role=\"status\">Tap once to keep the screen on</p>",
+      "css": ".ds-pill { display: inline-block; margin: 0; padding: 0.4em 0.9em; border-radius: 999px; background: var(--caution, #ffd60a); color: #000; font: 800 1.25rem/1.2 system-ui, -apple-system, sans-serif; white-space: nowrap; }"
+    },
+    {
+      "name": "Timer Digits",
+      "kind": "custom",
+      "refersTo": "digits",
+      "description": "The fixed-cell digit line; white while counting down, overtime red with a minus below zero.",
+      "html": "<div class=\"ds-digits\"><span class=\"ds-cell\">4</span><span class=\"ds-cell\">5</span><span class=\"ds-cell ds-colon\">:</span><span class=\"ds-cell\">0</span><span class=\"ds-cell\">0</span></div><div class=\"ds-digits ds-over\"><span class=\"ds-cell\">&#8722;</span><span class=\"ds-cell\">0</span><span class=\"ds-cell\">1</span><span class=\"ds-cell ds-colon\">:</span><span class=\"ds-cell\">2</span><span class=\"ds-cell\">7</span></div>",
+      "css": ".ds-digits { display: flex; justify-content: center; padding: 0.1em 0; background: var(--bg, #000); color: #fff; font: 700 4.5rem/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; } .ds-cell { display: inline-block; width: 0.62em; text-align: center; } .ds-colon { width: 0.32em; } .ds-over { color: var(--overtime, #ff453a); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Digits Are the Interface",
+    "overview": "A single line of bold white numerals on pure black, held in fixed cells so nothing ever jumps. While the timer runs there is nothing else on screen; controls are summoned, float over the black as glass, and fade away again. The system is built for one job: read the time at an angle from 2 m under stage light, on an OLED phone lying on a synth.\n\nPure black and system-ui are owner-pinned hard rules (PRODUCT.md), not defaults to revisit. Colour is semantic and scarce: each hue means exactly one thing. The category default (rings, progress bars, labels around a small clock) is rejected.",
+    "keyCharacteristics": [
+      "Pure #000 ground, white bold tabular digits sized to the largest width that fits.",
+      "Digit cells measured from the device's own font; the minus cell reserved from the start.",
+      "One meaning per colour: bright red = overtime, amber = needs a tap, deep red = End.",
+      "Glass only on floating controls; preset tiles are plain filled tap targets.",
+      "Silent; motion is short, and every movement has a reduced-motion variant."
+    ],
+    "rules": [
+      { "name": "The One Meaning Rule", "body": "Each hue carries one meaning. Bright red is overtime only; deep red is End only; amber is \"needs a tap\" only. A new state gets a new meaning only by owner decision, never by reusing a hue.", "section": "colors" },
+      { "name": "The Pure Black Rule", "body": "The ground is #000 on every surface, overriding any \"no pure black\" guidance (dark stages, OLED).", "section": "colors" },
+      { "name": "The Fixed Cell Rule", "body": "Every digit sits in a cell as wide as the widest digit 0–9, measured at runtime from the resolved font (weight 700, tabular-nums); colon and minus get their own measured cells. Cells are keyed from the right so seconds stay the same element when an hour or minus appears.", "section": "typography" },
+      { "name": "The Reserved Minus Rule", "body": "The line is sized as if the minus were already present, so the digit size never changes at zero.", "section": "typography" },
+      { "name": "The Quiet Stage Rule", "body": "While running, nothing renders but the digits and any status pill that reports a threat. Controls come back on long press (500 ms) and auto-hide after 5 s without touches.", "section": "layout" },
+      { "name": "The Glass Recipe Rule", "body": "Glass is a 10% white fill, `blur(20px) saturate(180%)`, a 1px 24% white rim and the inset rim light above. Pressed raises the fill to 20%. In Chromium the blur is replaced by a refraction filter plus `blur(4px)`; Safari keeps the frosted blur, and it must look right there. The cut switch falls back to a plain `rgb(58 58 60 / 0.88)` fill with no backdrop filter.", "section": "elevation" },
+      { "name": "The No Outer Shadow Rule", "body": "Glass casts no outer shadow: on #000 it is invisible and only darkens the digits underneath.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep every ground #000 and the digits #fff bold system-ui with tabular figures.",
+      "Do size digits from measured cells with the minus reserved, and keep the control band reserved below them.",
+      "Do put glass only on controls floating over the stage, using the one recipe and its Safari blur and fallback.",
+      "Do use Phosphor icons: fill for play and pause, bold for X.",
+      "Do give every motion a reduced-motion variant (fade instead of shake, scale or glide).",
+      "Do report anything that threatens the show in an amber pill with black text."
+    ],
+    "donts": [
+      "Don't use bright red for anything but overtime digits, or deep red for anything but End.",
+      "Don't add rings, progress bars or labels around the time.",
+      "Don't put glass on the preset tiles or give glass an outer drop shadow.",
+      "Don't let the digit size or position change when a digit, the hour or the minus sign changes.",
+      "Don't use SF Symbols or downloaded SF fonts.",
+      "Don't add sound or haptics."
+    ]
+  }
+}

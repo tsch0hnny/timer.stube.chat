@@ -47,6 +47,5 @@ const pills = computed(() => {
   color: #000;
   font: 800 1.25rem / 1.2 system-ui, -apple-system, sans-serif;
   white-space: nowrap;
-  box-shadow: 0 6px 18px rgb(0 0 0 / 0.6);
 }
 </style>
