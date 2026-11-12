@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { MINUS } from '#shared/timer/display'
 import { RESERVE_MINUS_CELL, TIMER_FONTS } from '~/features'
 import { lineEm, measureCellWidths, type CellWidths } from '~/utils/digitMetrics'
@@ -37,10 +37,35 @@ const style = computed(() => ({
   fontWeight: String(font.weight),
 }))
 const label = computed(() => (props.negative ? `${props.text.slice(1)} over` : `${props.text} left`))
+
+/*
+ * The line is centred, so when the minus sign appears (or goes) every digit would shift by half a
+ * minus cell. The spec says the line "re-centres during the shake": start it exactly where the
+ * digits were and glide to the new centre, so nothing ever jumps. Reduced motion: a short fade.
+ */
+const root = ref<HTMLElement | null>(null)
+watch(
+  () => props.negative,
+  (negative, was) => {
+    const el = root.value
+    if (!props.fit || !el || negative === was) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' })
+      return
+    }
+    const shift = (widths.value.minus * parseFloat(getComputedStyle(el).fontSize)) / 2
+    el.animate(
+      [{ transform: `translateX(${negative ? -shift : shift}px)` }, { transform: 'translateX(0px)' }],
+      { duration: 560, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' },
+    )
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
   <div
+    ref="root"
     class="digits"
     :class="{ fit, negative, shaking: shake && shakeKey > 0 }"
     :style="style"
@@ -56,6 +81,7 @@ const label = computed(() => (props.negative ? `${props.text.slice(1)} over` : `
 
 <style scoped>
 .digits {
+  position: relative;
   color: #fff;
   line-height: 1;
   font-variant-numeric: tabular-nums;

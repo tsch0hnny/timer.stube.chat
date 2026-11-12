@@ -4,7 +4,8 @@
   --bg: #000;
   --fg: #fff;
   --overtime: #ff453a; /* 6.0:1 on black */
-  --warn-bg: #d70015; /* white text on it: 5.4:1 */
+  --caution: #ffd60a; /* "needs a tap" pill, black text on it: 14:1; deliberately not red */
+  --destructive: #d70015; /* the End button only; white text on it: 5.4:1 */
   --dim: #8e8e93; /* 6.2:1 on black */
   --ok: #30d158;
   --tile: #1c1c1e;

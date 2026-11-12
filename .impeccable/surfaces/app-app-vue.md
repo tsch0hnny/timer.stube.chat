@@ -15,12 +15,12 @@ Open until the device spike reports: landscape rotation direction (cw/ccw), digi
 
 THESIS: The digits are the interface: one fixed-cell white numeral line that never shifts, on pure black, with nothing else on screen while running. Refuses the category default of a dashboard of rings, progress bars and labels around a small clock.
 
-OWN-WORLD: #000 ground, #fff bold system-ui tabular digits in fixed-width cells, one state colour (red) for overtime, glass only on floating controls (frosted in Safari, refraction in Chromium), Phosphor icons at one weight, no borders or cards.
+OWN-WORLD: #000 ground, #fff bold system-ui tabular digits in fixed-width cells measured from the device font. Red (#ff453a) means overtime and nothing else; amber (#ffd60a, black text) means "needs a tap"; a deep red is reserved for the End button. Glass only on floating controls (frosted in Safari, refraction in Chromium), Phosphor icons: fill for play and pause (solid mass reads at distance), bold for the X (Phosphor's filled X is a square badge, which reads as a window-close), no borders or cards; preset tiles are plain filled tap targets.
 
 STORY: The player taps a preset, sees the paused landscape timer with controls, taps play, and the screen goes quiet: only time. Long press brings controls back; at zero the digits shake once, turn red and a minus sign settles in.
 
-FIRST VIEWPORT: Timer view, rotated landscape: digits centred in the safe area at the largest size readable from 2 m; while paused a centred round play button floats over the digits' lower half, −step left and +step right, ✕ top-left; a red warning pill top-centre only when the wake lock is missing.
+FIRST VIEWPORT: Timer view, rotated landscape: digits centred horizontally at the largest width-bound size, held above a control band that is always reserved (paused or running), so they never move when controls appear. While paused: round play button centred in that band below the digits, −step left and +step right of it, ✕ top-left, version label bottom-right. An amber pill top-centre only when the wake lock is missing. At zero the minus appears and the line glides to its new centre during the shake (a fade with reduced motion).
 
-FORM: Pinned by the spec and the owner's hard rules (position 1 of 1; no direction roll run). seed: none (unavailable)
+FORM: Pinned by the spec and the owner's hard rules (position 1 of 1). No direction roll was run because the owner pinned the world, so there is no seed reference. seed: none (roll skipped: owner-pinned world)
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance

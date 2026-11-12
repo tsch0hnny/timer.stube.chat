@@ -147,7 +147,7 @@ const display = timer.display
           <div v-if="controlsVisible" class="controls" data-testid="controls">
             <div class="exit" data-control>
               <button type="button" class="round glass exit-btn" aria-label="Back to presets" data-testid="exit" @click="onExit">
-                <PhX :size="26" weight="bold" />
+                <PhX :size="28" weight="bold" />
               </button>
               <Transition name="fade">
                 <div v-if="confirmExit" class="confirm glass" data-testid="exit-confirm">
@@ -284,7 +284,7 @@ const display = timer.display
   padding: 0.6rem 1.1rem;
   border-radius: 999px;
   border: 0;
-  background: var(--warn-bg);
+  background: var(--destructive);
   color: #fff;
   font: inherit;
 }

@@ -42,8 +42,9 @@ const pills = computed(() => {
   margin: 0;
   padding: 0.4em 0.9em;
   border-radius: 999px;
-  background: var(--warn-bg);
-  color: #fff;
+  /* Amber, not red: under stage light a red pill could be misread as overtime. */
+  background: var(--caution);
+  color: #000;
   font: 800 1.25rem / 1.2 system-ui, -apple-system, sans-serif;
   white-space: nowrap;
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.6);

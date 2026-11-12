@@ -45,3 +45,33 @@ test('screens: presets, paused, running, overtime, picker, wake-lock pill', asyn
   await page.setViewportSize({ width: vp.height, height: vp.width })
   await shot('7-overtime-landscape-viewport')
 })
+
+// Home-screen app size (no browser bars) and the states the first set did not capture.
+test('screens: standalone 390×844, presets landscape, hint, exit confirm, debug overlay', async ({ page }, info) => {
+  const shot = async (name: string) => {
+    await page.clock.runFor(50)
+    await page.waitForTimeout(350)
+    const path = info.outputPath(`${name}.png`)
+    await page.screenshot({ path })
+    await info.attach(name, { path, contentType: 'image/png' })
+  }
+  await page.setViewportSize({ width: 390, height: 844 })
+  await openPreset(page, 45)
+  await shot('8-standalone-paused')
+  await page.getByTestId('play').click()
+  await page.clock.runFor(6000)
+  await shot('9-standalone-running')
+  const box = (await page.getByTestId('digits').boundingBox())!
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+  await shot('10-hint')
+  await longPress(page)
+  await page.getByTestId('exit').click()
+  await shot('11-exit-confirm')
+  for (let i = 0; i < 5; i++) await page.getByTestId('version').click()
+  await shot('12-debug-overlay')
+  await page.getByTestId('debug-close').click()
+  await page.getByTestId('exit').click()
+  await page.getByTestId('exit-confirm-end').click()
+  await page.setViewportSize({ width: 844, height: 390 })
+  await shot('13-presets-landscape')
+})
