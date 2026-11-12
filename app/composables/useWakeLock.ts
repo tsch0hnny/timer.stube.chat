@@ -61,7 +61,7 @@ export function useWakeLock() {
   if (!listening && typeof document !== 'undefined') {
     listening = true
     document.addEventListener('visibilitychange', onVisible)
-    for (const t of ['pointerup', 'click', 'keydown']) window.addEventListener(t, onActivation, { capture: true })
+    for (const t of ['pointerup', 'touchend', 'click', 'keydown']) window.addEventListener(t, onActivation, { capture: true })
   }
   /** Call inside a tap handler when the timer view opens (that tap is the activation WebKit needs). */
   function want(on: boolean, reason: string) {
