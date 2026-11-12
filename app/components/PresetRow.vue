@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { PhCaretRight, PhPlay } from '@phosphor-icons/vue'
+import { PhCaretRight, PhPlay, PhTrash } from '@phosphor-icons/vue'
 
 /**
- * One preset in Apple's Recents format, with iOS swipe to delete: the row follows the finger and
- * reveals a red Delete behind it; past half the button it snaps open, a full swipe deletes on
- * release. Vertical scrolling stays the browser's (touch-action: pan-y); only a gesture that starts
- * sideways is ours.
+ * One preset in Apple's Recents format, with swipe to delete as in the iOS 26/27 Clock app: the row
+ * follows the finger and uncovers a small dim circle with a trash icon that grows and brightens,
+ * then stretches into a capsule; released past half the circle it rests open on the circle, and
+ * past 60% of the row the icon jumps to the capsule's left end: releasing then deletes. Vertical
+ * scrolling stays the browser's (touch-action: pan-y); only a gesture that starts sideways is ours.
  */
 const props = defineProps<{
   testId: string
@@ -22,7 +23,9 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ select: []; delete: []; open: [open: boolean] }>()
 
-const ACTION = 88 // px, width of the Delete button when the row rests open
+const D = 52 // px, the delete circle's diameter = the capsule's height
+const M = 10 // px, its margin to the screen edge and to the row
+const ACTION = D + 2 * M // how far the row moves when it rests open on the circle
 const FULL = 0.6 // share of the row width past which releasing deletes
 
 const row = ref<HTMLElement | null>(null)
@@ -35,11 +38,18 @@ let sideways: boolean | null = null
 let swallowClick = false
 
 const offset = computed(() => drag.value ?? (props.open ? -ACTION : 0))
-const armed = computed(() => -offset.value > width.value * FULL)
-// The label sits in the revealed strip; on a full swipe it rides the row's edge, as on iOS.
-const labelLeft = computed(() =>
-  armed.value || removing.value ? width.value + offset.value : Math.max(width.value + offset.value, width.value - ACTION),
-)
+const armed = computed(() => -offset.value > width.value * FULL || removing.value)
+// The capsule always fills the uncovered strip, a margin M on both sides: first a circle that grows
+// and brightens with the strip, then, once full size, a capsule stretching left with the row.
+const pill = computed(() => {
+  const reveal = Math.max(0, -offset.value)
+  const grow = Math.min(1, Math.max(0, (reveal - 2 * M) / D))
+  return {
+    width: `${Math.max(D, reveal - 2 * M)}px`,
+    transform: `translateY(-50%) scale(${grow})`,
+    opacity: String(0.35 + 0.65 * grow),
+  }
+})
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function onDown(e: PointerEvent) {
@@ -116,13 +126,15 @@ async function remove() {
       v-show="offset < 0 || removing"
       type="button"
       class="delete"
+      :class="{ armed, settling: drag === null }"
+      :style="pill"
       :tabindex="open ? 0 : -1"
       :aria-hidden="!open"
       :aria-label="`Delete the ${words} preset`"
       :data-testid="`delete-${testId}`"
       @click="remove"
     >
-      <span class="delete-label" :style="{ left: `${labelLeft}px` }">Delete</span>
+      <PhTrash class="trash" :size="24" aria-hidden="true" />
     </button>
     <button
       ref="fg"
@@ -153,26 +165,37 @@ async function remove() {
 
 <style scoped>
 .row { position: relative; overflow: hidden; }
-/* Behind the row: the destructive red, with its label in the strip the row uncovers. */
+/* Behind the row, in the strip it uncovers: the destructive capsule, anchored right, centred. */
 .delete {
   position: absolute;
-  inset: 0;
-  border: 0;
+  right: 10px;
+  top: 50%;
+  height: 52px;
+  min-width: 52px;
   padding: 0;
+  border: 0;
+  border-radius: 999px;
   background: var(--destructive);
   color: #fff;
-  font: 400 1.0625rem / 1 system-ui, -apple-system, sans-serif;
+  transform-origin: right center;
   cursor: pointer;
 }
-.delete-label {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 88px;
-  display: grid;
-  place-items: center;
-  transition: left 160ms cubic-bezier(0.25, 1, 0.5, 1);
+/* While the finger drives it, the capsule follows exactly; once released it settles like the row. */
+.delete.settling {
+  transition:
+    width 360ms cubic-bezier(0.25, 1, 0.5, 1),
+    transform 360ms cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 200ms ease-out;
 }
+/* The trash icon sits in the middle, and jumps to the capsule's left end once a release deletes. */
+.trash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: left 240ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.delete.armed .trash { left: 26px; }
 /* Apple's Recents row: big light time, the words below, the action at the right. */
 .preset {
   position: relative;
@@ -250,7 +273,7 @@ async function remove() {
   100% { background: var(--bg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .preset, .preset.dragging, .delete-label { transition: none; }
+  .preset, .preset.dragging, .delete.settling, .trash { transition: none; }
   .slot > * { transition: opacity 150ms linear; transition-delay: 0ms; }
   .row.on .chevron, .go, .row.on .go { transform: none; }
 }

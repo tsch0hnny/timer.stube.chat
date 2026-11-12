@@ -182,8 +182,8 @@ test('swipe left reveals Delete; deleting survives a reload; Restore brings the 
   await openApp(page)
   await expect(page.getByTestId('restore-presets')).toHaveCount(0) // nothing missing yet
   await swipe(page, '30', -70)
-  await expect.poll(() => offsetOf(page, '30')).toBe(-88) // snapped open
-  await page.getByTestId('delete-30').locator('.delete-label').click()
+  await expect.poll(() => offsetOf(page, '30')).toBe(-72) // snapped open, resting on the circle
+  await page.getByTestId('delete-30').click()
   await expect(page.getByTestId('preset-30')).toHaveCount(0)
   await expect(page.getByTestId('presets')).toBeVisible() // no timer opened
   await page.reload()
@@ -209,17 +209,17 @@ test('with a row open, a tap only closes it: on that row, on another row, or any
   // The end of the list, so both rows are on screen without scrolling (a scroll closes rows too).
   await page.getByTestId('presets').evaluate((el) => { el.scrollTop = el.scrollHeight })
   await swipe(page, '150', -100)
-  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-72)
   await page.getByTestId('preset-150').click({ position: { x: 150, y: 20 } }) // on the shifted row
   await expect.poll(() => offsetOf(page, '150')).toBe(0)
   await expect(page.getByTestId('timer-view')).toHaveCount(0)
   await swipe(page, '150', -100)
-  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-72)
   await page.getByTestId('preset-165').click()
   await expect.poll(() => offsetOf(page, '150')).toBe(0)
   await expect(page.getByTestId('timer-view')).toHaveCount(0) // that tap opened nothing
   await swipe(page, '150', -100)
-  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-72)
   await page.getByTestId('version').click() // anywhere else
   await expect.poll(() => offsetOf(page, '150')).toBe(0)
   await page.getByTestId('preset-165').click() // now a tap opens the timer again
@@ -264,4 +264,32 @@ test('with every preset deleted, the list says how to get them back', async ({ p
   await expect(page.getByTestId('presets-empty')).toBeVisible()
   await page.getByTestId('restore-presets').click()
   await expect(page.locator('[data-testid^="preset-"]')).toHaveCount(12)
+})
+
+test('the delete circle grows and brightens with the finger, stretches, and arms past 60%', async ({ page }) => {
+  await openApp(page)
+  const row = page.getByTestId('preset-30')
+  await row.scrollIntoViewIfNeeded()
+  const b = (await row.boundingBox())!
+  const y = b.y + b.height / 2
+  const x = b.x + b.width - 20
+  const pill = () => page.getByTestId('delete-30').evaluate((el) => {
+    const s = getComputedStyle(el)
+    return { scale: new DOMMatrix(s.transform).a, opacity: Number(s.opacity), width: el.getBoundingClientRect().width, armed: el.classList.contains('armed') }
+  })
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x - 30, y, { steps: 5 })
+  const small = await pill()
+  expect(small.scale).toBeLessThan(0.9)
+  expect(small.opacity).toBeLessThan(0.9)
+  await page.mouse.move(x - 200, y, { steps: 10 })
+  const stretched = await pill()
+  expect(stretched.scale).toBe(1)
+  expect(stretched.width).toBeGreaterThan(150) // a capsule now, following the finger
+  expect(stretched.armed).toBe(false)
+  await page.mouse.move(x - b.width * 0.7, y, { steps: 10 })
+  expect((await pill()).armed).toBe(true) // the icon jumps left: releasing deletes
+  await page.mouse.up()
+  await expect(row).toHaveCount(0)
 })
