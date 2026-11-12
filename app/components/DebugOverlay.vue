@@ -57,7 +57,7 @@ async function refresh() {
   const de = document.documentElement
   stage.value = r ? `${Math.round(r.width)}×${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)} · layout viewport ${de.clientWidth}×${de.clientHeight}` : '–'
   const hs = [...document.querySelectorAll<HTMLElement>('.unit-probe')].map((el) => el.offsetHeight).join(' / ')
-  units.value = `vh/dvh/svh/lvh ${hs} · --app-h ${de.style.getPropertyValue('--app-h') || 'unset (100dvh)'}`
+  units.value = `vh/dvh/svh/lvh ${hs} · unpainted strip ${de.style.getPropertyValue('--strip') || 'unset'}`
 }
 let interval: ReturnType<typeof setInterval> | undefined
 onMounted(() => { void refresh(); interval = setInterval(refresh, 1000); document.addEventListener('visibilitychange', refresh) })
@@ -122,7 +122,7 @@ async function copy() {
   inset: 0;
   z-index: 50;
   overflow: auto;
-  padding: calc(env(safe-area-inset-top) + 0.75rem) calc(env(safe-area-inset-right) + 0.75rem) calc(env(safe-area-inset-bottom) + 1.5rem) calc(env(safe-area-inset-left) + 0.75rem);
+  padding: calc(env(safe-area-inset-top) + 0.75rem) calc(env(safe-area-inset-right) + 0.75rem) calc(var(--safe-bottom) + 1.5rem) calc(env(safe-area-inset-left) + 0.75rem);
   background: rgb(0 0 0 / 0.94);
   color: #fff;
   font: 0.8125rem / 1.4 ui-monospace, Menlo, monospace;

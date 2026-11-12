@@ -316,7 +316,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 
 ## Layout
 
-The app is two screens, both fixed to the full screen height. In the iOS home-screen app the viewport can stop short of the screen at the home-bar end, so screens use the measured full height (`--app-h`) and fall back to 100dvh elsewhere.
+The app is two screens, both fixed to the painted height (100dvh). In the iOS 27 home-screen app the page is 47px shorter than the screen and the strip below it is not painted at all (WebKit bug 313800), so nothing may be laid out there; since the home indicator sits inside that strip, the bottom safe area kept clear inside the page is `--safe-bottom` = the inset minus the strip (`--strip`, measured at runtime), 0 on the iPhone 13 Pro. On the stage this puts the digits on the physical screen's centre.
 
 **Presets, portrait:** one column with a 1.25rem gutter plus safe-area insets. The wheel (7 rows of 34px) sits at the top, then the two 5.25rem round buttons pushed to the edges, the grouped switch cell, the "Presets" header (2rem above) and the full-bleed list whose rows keep the gutter as padding. The version label closes the page.
 

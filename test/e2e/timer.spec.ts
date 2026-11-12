@@ -205,24 +205,29 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect(page.getByTestId('debug-wake-lock')).toContainText('held')
     const vp = page.viewportSize()!
     await expect(page.getByTestId('debug-stage')).toContainText(`${vp.width}×${vp.height} at 0,0`) // the stage fills the screen
-    await expect(page.getByTestId('debug-units')).toContainText(`vh/dvh/svh/lvh ${vp.height} / ${vp.height} / ${vp.height} / ${vp.height} · --app-h unset (100dvh)`)
+    await expect(page.getByTestId('debug-units')).toContainText(`vh/dvh/svh/lvh ${vp.height} / ${vp.height} / ${vp.height} / ${vp.height} · unpainted strip unset`)
     await page.getByTestId('debug-close').click()
     await expect(page.getByTestId('debug')).toHaveCount(0)
   })
 
-  // Only the wiring can be tested here: emulated browsers have no short iOS viewport, so lvh equals
-  // the viewport. The 797 → 844 case is covered by test/unit/appHeight.test.ts and the device.
-  test('in the iOS home-screen app the views take --app-h; elsewhere 100dvh', async ({ page }) => {
-    await page.addInitScript(() => Object.defineProperty(navigator, 'standalone', { configurable: true, value: true }))
-    await openPreset(page, 15)
-    const vp = page.viewportSize()!
-    const measure = () => page.evaluate(() => ({
-      appH: document.documentElement.style.getPropertyValue('--app-h'),
-      stage: Math.round(document.querySelector('[data-testid="timer-view"]')!.getBoundingClientRect().height),
-    }))
-    expect(await measure()).toEqual({ appH: `${vp.height}px`, stage: vp.height })
-    await page.setViewportSize({ width: vp.height, height: vp.width })
-    await expect.poll(measure).toEqual({ appH: `${vp.width}px`, stage: vp.width })
+  // The iPhone 13 Pro home-screen app as measured: a 797 px viewport on the 844 px screen, the rest
+  // unpainted. Every control has to lie inside the viewport (on d995c7b the reset button did not).
+  test.describe('iOS home-screen app with the unpainted strip', () => {
+    test.use({ viewport: { width: 390, height: 797 }, screen: { width: 390, height: 844 } })
+    test('every control on the stage and the end of the presets list lie inside the painted viewport', async ({ page }) => {
+      await page.addInitScript(() => Object.defineProperty(navigator, 'standalone', { configurable: true, value: true }))
+      await openPreset(page, 15)
+      expect(await page.evaluate(() => document.documentElement.style.getPropertyValue('--strip'))).toBe('47px')
+      const outside = () => page.evaluate(() => [...document.querySelectorAll('[data-testid="timer-view"] button, [data-testid="digits"]')]
+        .map((el) => ({ id: el.getAttribute('data-testid'), b: el.getBoundingClientRect() }))
+        .filter(({ b }) => b.width && (b.top < 0 || b.left < 0 || b.bottom > innerHeight || b.right > innerWidth))
+        .map(({ id, b }) => `${id} ${Math.round(b.left)},${Math.round(b.top)}–${Math.round(b.right)},${Math.round(b.bottom)}`))
+      expect(await outside()).toEqual([])
+      await page.getByTestId('exit').click()
+      await page.getByTestId('presets').evaluate((el) => { el.scrollTop = el.scrollHeight })
+      const v = (await page.getByTestId('version').boundingBox())!
+      expect(v.y + v.height).toBeLessThanOrEqual(797)
+    })
   })
 })
 

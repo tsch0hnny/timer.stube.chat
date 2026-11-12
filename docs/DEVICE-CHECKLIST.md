@@ -29,9 +29,10 @@ alongside other work).
 2. **Version.** Scroll to the end of the presets list and tap the small version label five times
    to open the debug overlay. **Version = the candidate you were told? Service worker "activated"?** Close it, swipe the
    app away, open it again, and check the overlay once more. **"controlled=true" now? Does the
-   "stage" row read 390×844 at 0,0 (the whole screen)?** (e625305 read 390×797: iOS gave the page a
-   viewport 47 px short. The "units" row shows what iOS reports and the height the app now uses
-   instead, "--app-h 844px".)
+   "stage" row read 390×797 at 0,0 and the "units" row end in "unpainted strip 47px"?** (iOS 27
+   gives the home-screen app a 797 px page and leaves the 47 px below it unpainted, home indicator
+   included; the app keeps everything inside the 797 px. A different number there is worth a
+   screenshot.)
 3. **Wheel and presets.**
    - **Is the wheel fully bright (below the dimmed band at the notch), and does it turn and snap
      like the Clock app's timer?**
@@ -83,8 +84,8 @@ alongside other work).
    - **Are the digits clear of the notch and the corners?**
    - **Are the ✕ and the digits fully bright?** iOS dims a band along the notch edge (about 85 px;
      the spike showed it over the minus sign); nothing should sit in it now.
-   - **Are the digits centred along the long side, with no empty black band at the home-bar end?**
-     (The spike's stage stopped 47 px short there.)
+   - **Are the digits centred along the long side of the screen, and is the reset arrow (top
+     right, at the home-bar end) fully visible?** (d995c7b drew it into iOS's unpainted strip.)
    - Take one screenshot in overtime (step down past zero) and send it.
    - **Is the time readable from 1 m and 2 m at an angle, under the brightest light you have?**
    - **Are the digits centred on the short side too, and do the colons sit on the middle of the

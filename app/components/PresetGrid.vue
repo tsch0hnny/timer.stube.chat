@@ -162,7 +162,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   top: 0;
   left: 0;
   right: 0;
-  height: var(--app-h, 100dvh);
+  height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
   touch-action: manipulation; /* a scroll container: html's value does not reach in here */
@@ -170,7 +170,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   padding:
     calc(env(safe-area-inset-top) + 0.75rem)
     calc(env(safe-area-inset-right) + var(--gutter))
-    calc(env(safe-area-inset-bottom) + 0.5rem)
+    calc(var(--safe-bottom) + 0.5rem)
     calc(env(safe-area-inset-left) + var(--gutter));
   background: var(--bg);
 }

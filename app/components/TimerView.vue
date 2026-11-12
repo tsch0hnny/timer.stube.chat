@@ -245,14 +245,13 @@ const display = timer.display
 
 <style scoped>
 .stage {
-  /* In the iOS home-screen app the viewport (and so inset: 0 and 100dvh) can stop 47 px short of
-     the screen at the home-bar end; --app-h is the full screen there (plugins/app-height.client.ts).
-     Elsewhere 100dvh: the visible area in a Safari tab and in Chrome. */
+  /* The painted area: in the iOS home-screen app iOS 27 leaves a 47 px strip below the viewport
+     unpainted, so nothing may sit there (--safe-bottom makes up for it, main.css). */
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: var(--app-h, 100dvh);
+  height: 100dvh;
   background: var(--bg);
   container-type: size;
   overflow: hidden;
@@ -265,19 +264,19 @@ const display = timer.display
 /* The insets are reported in physical (portrait) coordinates; map them to the rotated sides. */
 .stage[data-rot='none'] .land {
   width: 100cqw; height: 100cqh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) var(--safe-bottom) env(safe-area-inset-left);
 }
 .stage[data-rot='cw'] .land {
   width: 100cqh; height: 100cqw;
   transform-origin: 0 0;
   transform: translateX(100cqw) rotate(90deg);
-  padding: env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) env(safe-area-inset-top);
+  padding: env(safe-area-inset-right) var(--safe-bottom) env(safe-area-inset-left) env(safe-area-inset-top);
 }
 .stage[data-rot='ccw'] .land {
   width: 100cqh; height: 100cqw;
   transform-origin: 0 0;
   transform: translateY(100cqh) rotate(-90deg);
-  padding: env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom);
+  padding: env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) var(--safe-bottom);
 }
 /* The digits clear the dimmed band along the notch edge (--notch-dim in main.css); the corner
    controls on that side move further in. */

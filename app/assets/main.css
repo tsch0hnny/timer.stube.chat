@@ -19,6 +19,10 @@
   /* iOS dims a band along the notch edge in the home-screen app, about 85 px deep: 38 px past the
      safe area (measured on the iPhone 13 Pro). Content on that edge moves this much further in. */
   --notch-dim: 2.5rem;
+  /* The bottom safe area to keep clear inside the page. In the iOS home-screen app the strip below
+     the viewport is unpainted and holds the home indicator (--strip, plugins/unpainted-strip), so
+     only what reaches above it counts: 0 on the iPhone 13 Pro, the full inset everywhere else. */
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--strip, 0px)));
 }
 *, *::before, *::after { box-sizing: border-box; }
 html, body {

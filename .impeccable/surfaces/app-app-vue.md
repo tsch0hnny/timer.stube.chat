@@ -9,7 +9,7 @@ related_targets: ["app/components"]
 
 Mode: Operate. Audience: one player runs a set countdown on a phone lying on a synth; the band reads it at a glance from 1–2 m, at an angle, under stage light. Task: pick a set length (preset or any length on the wheel), start at the first note, nudge ± between songs, see overtime. Constraints: PRODUCT.md (phase 1 scope, cut order, never-cut list). Confirmed: inline two-step exit while running; debug overlay = 5 taps on the version label; no rotate button in phase 1; taps open the timer paused unless "Start right away" is on.
 
-Device facts that bind the layout (iPhone 13 Pro, iOS 27): the home-screen app's viewport can stop 47 px short at the home-bar end (--app-h fixes it); iOS dims a band about 85 px deep along the notch edge (--notch-dim).
+Device facts that bind the layout (iPhone 13 Pro, iOS 27): the home-screen app's page is 47 px shorter than the screen and the strip below is unpainted (nothing may sit there; --safe-bottom subtracts it from the bottom inset); iOS dims a band about 85 px deep along the notch edge (--notch-dim).
 
 ## Direction contract
 
