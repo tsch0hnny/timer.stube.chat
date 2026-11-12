@@ -37,7 +37,7 @@ jobs:
       - run: npm ci
       - uses: docker/setup-buildx-action@v4
       - name: Validate compose file
-        run: docker network create traefik_net && docker compose -f spike/compose.yaml config --quiet
+        run: docker network create traefik_net && docker compose -f spike/compose.yml config --quiet
       - name: Build image (BuildKit, same Dockerfile as the VPS)
         run: docker build -f spike/Dockerfile -t timer-stube-chat:spike --load .
       - name: Run container and wait until it serves

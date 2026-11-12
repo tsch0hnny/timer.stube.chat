@@ -1,5 +1,5 @@
 # Device spike at https://test-timer.stube.chat (later reused as staging).
-# On the VPS:  cd /opt/timer/src && git pull && docker compose -f spike/compose.yaml up -d --build
+# On the VPS (repo cloned to /opt/timer/src):  cd /opt/timer/src && git pull && docker compose -f spike/compose.yml up -d --build
 name: timer-test
 
 services:
