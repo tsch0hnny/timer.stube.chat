@@ -42,6 +42,8 @@ const label = computed(() => (props.negative ? `${props.text.slice(1)} over` : `
  * The line is centred, so when the minus sign appears (or goes) every digit would shift by half a
  * minus cell. The spec says the line "re-centres during the shake": start it exactly where the
  * digits were and glide to the new centre, so nothing ever jumps. Reduced motion: a short fade.
+ * The minus starts half a cell further out, under the notch edge (and briefly past it during the
+ * shake), so it fades in as it slides into place.
  */
 const root = ref<HTMLElement | null>(null)
 watch(
@@ -58,6 +60,7 @@ watch(
       [{ transform: `translateX(${negative ? -shift : shift}px)` }, { transform: 'translateX(0px)' }],
       { duration: 560, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' },
     )
+    if (negative) el.querySelector('.cell.minus')?.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 560, easing: 'ease-in' })
   },
   { flush: 'post' },
 )

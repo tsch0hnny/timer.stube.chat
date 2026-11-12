@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { longPress, openPreset } from './helpers'
+import { MIN, expectTime, longPress, openPreset } from './helpers'
 
 type Box = { x: number; y: number; width: number; height: number }
 const round = (b: Box) => ({ x: Math.round(b.x * 100) / 100, y: Math.round(b.y * 100) / 100, w: Math.round(b.width * 100) / 100, h: Math.round(b.height * 100) / 100 })
@@ -38,11 +38,13 @@ for (const font of ['system']) {
 /** Records every animation the app starts on the digit line (keyframes only). */
 async function recordDigitAnimations(page: Page) {
   await page.addInitScript(() => {
-    const w = window as unknown as { __anims: Keyframe[][] }
+    const w = window as unknown as { __anims: Keyframe[][]; __minus: Keyframe[][] }
     w.__anims = []
+    w.__minus = []
     const orig = Element.prototype.animate
     Element.prototype.animate = function (this: Element, kf: Keyframe[] | PropertyIndexedKeyframes | null, opts?: number | KeyframeAnimationOptions) {
       if (this.matches('[data-testid="digits"]')) w.__anims.push(kf as Keyframe[])
+      if (this.matches('[data-testid="cell"].minus')) w.__minus.push(kf as Keyframe[])
       return orig.call(this, kf, opts)
     }
   })
@@ -71,6 +73,9 @@ test('crossing zero never jumps: the line starts where the digits were and glide
   const into = (await anims(page)).at(-1)!
   expect(Math.abs(after - before)).toBeGreaterThan(10) // the line did re-centre…
   expect(Math.abs(after + startShift(into) - before)).toBeLessThanOrEqual(1.5) // …but started where the digits were (offsets are whole px)
+  // The minus starts half a cell out, at the notch edge: it fades in while it slides into place.
+  const minus = await page.evaluate(() => (window as unknown as { __minus: Keyframe[][] }).__minus)
+  expect(minus.at(-1)!.map((k) => k.opacity)).toEqual([0, 1])
 
   // Stepping back out of overtime glides the other way.
   await longPress(page)
@@ -90,3 +95,38 @@ test('with reduced motion the re-centre is a fade, not a slide', async ({ page }
   expect(kf.map((k) => k.opacity)).toEqual([0, 1])
   expect(kf.some((k) => k.transform)).toBe(false)
 })
+
+/**
+ * Every cell of the line lies inside the viewport. getBoundingClientRect includes transforms, so
+ * this holds for the CSS-rotated stage too. Waits for the glide and the shake to finish first.
+ */
+async function expectLineOnScreen(page: Page) {
+  await expect.poll(() => page.evaluate(() => document.querySelector('[data-testid="digits"]')!
+    .getAnimations({ subtree: true }).filter((a) => a.playState === 'running').map((a) => a.constructor.name))).toEqual([])
+  const outside = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-testid="cell"]')]
+      .map((c) => ({ ch: c.textContent, b: c.getBoundingClientRect() }))
+      .filter(({ b }) => b.left < 0 || b.top < 0 || b.right > innerWidth || b.bottom > innerHeight)
+      .map(({ ch, b }) => `${ch} ${Math.round(b.left)},${Math.round(b.top)}–${Math.round(b.right)},${Math.round(b.bottom)}`))
+  expect(outside, `cells outside ${await page.evaluate(() => `${innerWidth}×${innerHeight}`)}`).toEqual([])
+}
+async function turnToLandscape(page: Page) {
+  const v = page.viewportSize()!
+  await page.setViewportSize({ width: Math.max(v.width, v.height), height: Math.min(v.width, v.height) })
+}
+
+// Digits are tabular and the hour has one digit (the clamp is 9:59:59), so overtime is the widest
+// line each format can show: −MM:SS and −H:MM:SS.
+for (const [minutes, label, over] of [[15, '15:00 left', '00:05 over'], [75, '1:15:00 left', '0:00:05 over']] as const) {
+  test(`the line stays on screen: ${label.split(' ')[0]} and overtime, rotated and in a landscape viewport`, async ({ page }) => {
+    await openPreset(page, minutes)
+    await expectTime(page, label)
+    await expectLineOnScreen(page)
+    await page.getByTestId('play').click()
+    await page.clock.runFor(minutes * MIN + 5000)
+    await expectTime(page, over)
+    await expectLineOnScreen(page)
+    await turnToLandscape(page)
+    await expectLineOnScreen(page)
+  })
+}
