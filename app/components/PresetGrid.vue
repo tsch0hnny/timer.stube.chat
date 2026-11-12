@@ -253,7 +253,8 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   width: 2.5rem;
   height: 2.5rem;
 }
-/* Chevron out, play disc in (and back), rippling down the list: each row 18 ms after the one above. */
+/* Chevron and play disc swap in place, the same both ways, as iOS replaces a symbol: the old one
+   shrinks and fades while the new one grows in, rippling down the list (each row 18 ms later). */
 .slot > * {
   position: absolute;
   inset: 0;
@@ -274,7 +275,8 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   transform: scale(0.4);
 }
 .go :deep(svg) { transform: translateX(1px); }
-.list.on .chevron { opacity: 0; transform: translateX(-0.5rem); }
+.chevron { transform: scale(1); }
+.list.on .chevron { opacity: 0; transform: scale(0.4); }
 .list.on .go { opacity: 1; transform: none; }
 
 .foot {
