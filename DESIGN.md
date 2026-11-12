@@ -272,7 +272,8 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 - **Secondary Grey** (secondary-grey): the words under preset times, the version label, debug labels.
 - **Button Grey** (button-grey): every round button that is not start (reset, Set, Pause, ±step, exit).
 - **Menu Grey** (menu-grey): the step menu, the hint and exit-confirm capsules, the update capsule.
-- **Cell Grey** (cell-grey): the grouped switch cells ("Start right away", "Count up", "Tap to show controls") and a pressed preset row.
+- **Cell Grey** (cell-grey): the grouped "Start right away" cell and a pressed preset row.
+- **Selected Grey** (selected-grey, #636366): the chosen half of the direction capsule (iOS dark segmented control); white on it 6.0:1.
 - **Separator Grey** (separator-grey): 0.5px hairlines between list rows and menu choices.
 - **Chevron Grey** (chevron-grey): the row chevrons when presets only set.
 - **Quiet Fill** (quiet-fill): the wheel's selection band and the off switch track.
@@ -356,7 +357,10 @@ Apple's round timer button, tactile and plain.
 - **Menu:** opaque menu-grey, 0.875rem corners, 7.5rem wide, 3rem choices (15, 10, 5, 1 min) split by hairlines. The choice under the finger lights menu-highlight and goes 600; it grows from the button (opacity 160ms, scaleY from 0.6 over 200ms). Reduced motion: a 120ms fade only.
 
 ### Grouped Cell and Switch
-- **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in one cell-grey group with 0.75rem corners: "Start right away", "Count up" and "Tap to show controls", as the iOS timer's "When Timer Ends" row. Separator-grey hairlines between them, inset to the text.
+- **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in a cell-grey group with 0.75rem corners: "Start right away", as the iOS timer's "When Timer Ends" row. More cells in the group take separator-grey hairlines between them, inset to the text.
+
+### Direction Capsule (presets screen)
+- Count down or up is a mode, so it floats at the bottom left above the list (fixed, 0.75rem above the safe bottom, on the gutter), as iOS 26 floats its tab bar. An opaque menu-grey capsule, 4px padding, two 52×44px halves: a bold hourglass (count down) and a bold stopwatch (count up). The chosen half is selected-grey with a white icon, the other a dim icon on the capsule; 160ms colour change. A radiogroup ("Count down", "Count up"). The list ends with room for it, so the last row, Restore and the version label scroll clear.
 - **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green (as every iOS switch). Knob slides over 220ms.
 
 ### Preset List (Recents format)
@@ -369,7 +373,10 @@ Apple's round timer button, tactile and plain.
 - Three scroll-snapping columns (hours, min, sec), numbers ending just left of each column's centre with the unit beside them; a quiet-fill band (8px corners) across all three at the centre row; the drum fades to transparent at top and bottom and, where supported, curves with a scroll-linked rotateX. Reduced motion drops the curve. A focused column underlines its unit.
 
 ### Capsules and Pills
-- **Hint / exit and reset confirms:** opaque menu-grey capsules, white bold text.
+- **Hint / exit and reset confirms:** opaque menu-grey capsules, white bold text. Locked, the hint reads "Hold to unlock" after a bold closed padlock.
+
+### Stage Lock
+- An open padlock (bold, 22px) in a 3.25rem button-grey circle at the stage's bottom left, level with the middle of the play row and moved in from the notch like the ✕. Tapping it hides the controls and shows the locked hint; from then a tap only shows that hint, and a long press anywhere brings the controls back unlocked.
 - **Status pill:** caution-amber, black 800-weight text, centred at the top of the stage.
 
 ### Stage Digits (signature)

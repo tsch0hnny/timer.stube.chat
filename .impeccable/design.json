@@ -285,7 +285,7 @@
       },
       "body": {
         "displayName": "Body",
-        "purpose": "The grouped switch cells: \"Start right away\", \"Count up\", \"Tap to show controls\"."
+        "purpose": "The grouped \"Start right away\" cell."
       },
       "notice": {
         "displayName": "Notice",

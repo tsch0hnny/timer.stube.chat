@@ -17,6 +17,12 @@ export const FEATURES = {
    * switch and every timer counts down, exactly as c18efb0 did.
    */
   countUp: true,
+  /**
+   * The stage's touch model (owner, 13 Nov). On: a tap shows the controls, and a padlock among them
+   * locks the stage (taps then only say "Hold to unlock"; a long press anywhere unlocks). Off: the
+   * long press shows the controls and a tap only shows a hint, as c18efb0 did.
+   */
+  stageLock: true,
 } as const
 
 /** Which way the landscape timer is rotated inside a portrait viewport. Set from the device spike. */

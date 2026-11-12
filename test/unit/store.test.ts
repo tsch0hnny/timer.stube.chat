@@ -158,13 +158,17 @@ describe('presets and prefs live behind the same interface', () => {
     kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, countUp: 'on' } }))
     expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5 })
   })
-  it('remembers "Tap to show controls", off by default and on its own', () => {
+  it('remembers the stage lock; anything but a clean "locked" reads as unlocked', () => {
     const kv = memoryKV()
-    expect(createLocalStore(kv).loadPrefs().tapControls).toBe(false)
-    createLocalStore(kv).savePrefs({ ...DEFAULT_PREFS, tapControls: true })
-    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, tapControls: true })
-    kv.data.set('timer.v1.prefs', JSON.stringify({ v: 1, prefs: { stepMinutes: 5, countUp: true, tapControls: 1 } }))
-    expect(createLocalStore(kv).loadPrefs()).toEqual({ ...DEFAULT_PREFS, stepMinutes: 5, countUp: true })
+    expect(createLocalStore(kv).loadLocked()).toBe(false)
+    createLocalStore(kv).saveLocked(true)
+    expect(createLocalStore(kv).loadLocked()).toBe(true)
+    createLocalStore(kv).saveLocked(false)
+    expect(createLocalStore(kv).loadLocked()).toBe(false)
+    for (const junk of ['{', '1', JSON.stringify({ v: 2, locked: true }), JSON.stringify({ v: 1, locked: 'yes' })]) {
+      kv.data.set('timer.v1.lock', junk)
+      expect(createLocalStore(kv).loadLocked(), junk).toBe(false)
+    }
   })
   it('does not touch the spike’s keys', () => {
     const kv = memoryKV()

@@ -12,6 +12,7 @@
   --go-fill: #0a2a12; /* Apple's tinted start button on black; --go on it: 7.4:1 */
   --button: #333336; /* every other round button; white on it: 12.6:1 */
   --menu: #2c2c2e; /* menus, capsules and grouped cells */
+  --selected: #636366; /* the chosen half of a segmented control (iOS dark); white on it: 6.0:1 */
   --separator: #38383a;
   --fill-quiet: rgb(118 118 128 / 0.24); /* the wheel's selection band, an off switch */
   --chevron: #5a5a5e;

@@ -68,17 +68,21 @@ alongside other work).
      tap it again and then Reset: back to the full length, paused, green Start?** With the timer
      paused at its full length, **the reset arrow is greyed out?**
    - **Does everything respond on the first tap? Does the step menu work?**
-   - Let the controls fade, then **long press right where Pause sits**: **the controls appear and it
-     keeps running** (on c18efb0 the lifting finger could press the Pause that had just appeared)?
-   - On the presets screen turn **Tap to show controls** on, start a timer and let the controls
-     fade. **One short tap shows them, the next tap hides them?** Let them fade and **tap right where
-     Pause sits**, then where the ✕ sits: **the controls appear, it keeps running, and no "End
-     timer?"** Turn the switch off again (or leave it on if the band prefers it).
+   - Let the controls fade. **One short tap shows them, the next tap hides them?** Let them fade and
+     **tap right where Pause sits**, then where the ✕ sits, then where the padlock sits (bottom left):
+     **each time only the controls appear: it keeps running, no "End timer?", not locked?**
+   - **Long press right where Pause sits**: **the controls appear and it keeps running** (on c18efb0
+     the lifting finger could press the Pause that had just appeared)?
+   - **Lock:** tap the padlock. **The controls go and "Hold to unlock" shows?** Tap anywhere, also
+     where Pause sits: **only "Hold to unlock", it keeps running?** Swipe the app away and reopen it:
+     **still locked?** Long press anywhere: **the controls come back?** Let them fade and tap once:
+     **they show (it did not lock itself again)?**
 5. **Zero and overtime.** Step down to about 00:20 (−5 min a few times, then −1 min), and wait. At zero:
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it
    keeps counting −00:01, −00:02 …?**
 5a. **Count up** (added 13 Nov: the band rehearses with a clock that counts up). Tap ✕ → End and
-   turn **Count up** on. Dial 0 hours, 0 min, 20 sec and tap **Set**.
+   tap the **stopwatch** in the capsule at the bottom left: **it turns grey-filled, the hourglass
+   dims?** Dial 0 hours, 0 min, 20 sec and tap **Set**.
    - **It opens at 00:00, paused, with the reset arrow greyed out?** Tap **Start**: **00:01, 00:02 …
      and at 00:20 red and one shake, then 00:21, 00:22 … in red, with no minus?**
    - Tap +1 min: **the digits jump a minute forward (about 01:25) and stay red?** Tap −1 min twice:
@@ -88,7 +92,9 @@ alongside other work).
    - Reset arrow → Reset: **00:00, paused?**
    - Optional, with a second phone: start the same length counting up on one and counting down on
      the other in the same second. **The two numbers always add up to the length?**
-   - Tap ✕ → End, turn **Count up** off and tap 15:00: **15:00, counting down as before?** Tap ✕.
+   - Tap ✕ → End, tap the **hourglass** and then 15:00: **15:00, counting down as before?** Tap ✕.
+   - Scroll to the end of the list: **the last preset, Restore and the version label all scroll
+     clear of the capsule?**
 6. **Lock and unlock.** While it is running, lock with the side button, wait 30 s, then unlock.
    **Is the time right? Is there no amber pill?** (The spike showed the lock coming back by itself
    after unlocking.) If the pill shows, tap until it disappears.

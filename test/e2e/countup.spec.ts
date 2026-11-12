@@ -6,14 +6,14 @@ import { MIN, START, T0, digits, expectOnScreen, expectTime, longPress, mockWake
  * 00:00 → the length, red and one shake there, then on without a minus. ± moves the time shown.
  */
 
-/** Loads the presets screen on the paused fake clock, with "Count up" switched on by tapping it. */
+/** Loads the presets screen on the paused fake clock, with count up chosen in the floating capsule. */
 async function openApp(page: Page, opts: { countUp?: boolean } = {}) {
   await mockWakeLock(page, 'grant')
   await page.clock.install({ time: T0 })
   await page.goto('/')
   await expect(page.getByTestId('presets')).toBeVisible()
   await page.clock.pauseAt(START)
-  if (opts.countUp ?? true) await page.getByTestId('count-up').check()
+  if (opts.countUp ?? true) await page.getByTestId('direction-up').click()
 }
 async function openCountUp(page: Page, minutes: number) {
   await openApp(page)
@@ -23,12 +23,14 @@ async function openCountUp(page: Page, minutes: number) {
 const lineAnims = (page: Page) => page.evaluate(() => document.querySelector('[data-testid="digits"] .line')!.getAnimations().length)
 const fontSize = (page: Page) => digits(page).evaluate((el) => parseFloat(getComputedStyle(el).fontSize))
 
-test('"Count up" is off by default, is remembered, and a preset then opens at 00:00, paused', async ({ page }) => {
+test('counting down is the default; count up is remembered, and a preset then opens at 00:00, paused', async ({ page }) => {
   await openApp(page, { countUp: false })
-  await expect(page.getByTestId('count-up')).not.toBeChecked()
-  await page.getByTestId('count-up').check()
+  await expect(page.getByTestId('direction-down')).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'false')
+  await page.getByTestId('direction-up').click()
   await page.reload()
-  await expect(page.getByTestId('count-up')).toBeChecked()
+  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByTestId('direction-down')).toHaveAttribute('aria-checked', 'false')
   await page.getByTestId('preset-15').click()
   await expectTime(page, '00:00 elapsed')
   await expect(page.getByTestId('play')).toHaveText('Start')
@@ -125,7 +127,7 @@ test('with "Start right away" the tap starts counting up from 00:00', async ({ p
 
 test('switched off again, the next timer counts down as before', async ({ page }) => {
   await openApp(page)
-  await page.getByTestId('count-up').uncheck()
+  await page.getByTestId('direction-down').click()
   await page.getByTestId('preset-15').click()
   await expectTime(page, '15:00 left')
 })
@@ -135,7 +137,7 @@ test('count-up digits are bigger than the countdown\'s (no minus to make room fo
   await page.getByTestId('preset-15').click()
   const down = await fontSize(page)
   await page.getByTestId('exit').click()
-  await page.getByTestId('count-up').check()
+  await page.getByTestId('direction-up').click()
   await page.getByTestId('preset-15').click()
   const up = await fontSize(page)
   expect(up / down).toBeGreaterThan(1.05)
@@ -164,15 +166,27 @@ test('the digits stay clear of the controls when they are shown, rotated and in 
   expect(await gap()).toBeGreaterThanOrEqual(0)
 })
 
-test('in a landscape viewport every switch can be reached and tapped', async ({ page }) => {
+test('the capsule floats above the list, which scrolls clear of it to the very end', async ({ page }) => {
+  await openApp(page, { countUp: false })
+  const capsule = (await page.getByTestId('direction').boundingBox())!
+  await page.getByTestId('presets').evaluate((el) => { el.scrollTop = el.scrollHeight })
+  for (const id of ['restore-presets', 'version']) {
+    if (!(await page.getByTestId(id).count())) continue
+    const b = (await page.getByTestId(id).boundingBox())!
+    expect(b.y + b.height <= capsule.y || b.x >= capsule.x + capsule.width, `${id} ${JSON.stringify(b)} vs ${JSON.stringify(capsule)}`).toBe(true)
+  }
+  const last = (await page.getByTestId('preset-180').boundingBox())!
+  expect(last.y + last.height).toBeLessThanOrEqual(capsule.y)
+})
+
+test('in a landscape viewport the switch and both halves of the capsule can be reached and tapped', async ({ page }) => {
   await openApp(page, { countUp: false })
   const v = page.viewportSize()!
   await page.setViewportSize({ width: Math.max(v.width, v.height), height: Math.min(v.width, v.height) })
-  for (const [id, words] of [['start-on-tap', 'Start right away'], ['count-up', 'Count up'], ['tap-controls', 'Tap to show controls']]) {
-    await page.getByTestId(id).scrollIntoViewIfNeeded()
-    const b = (await page.getByTestId(id).boundingBox())!
-    expect(b.y >= 0 && b.y + b.height <= page.viewportSize()!.height, `${id} ${JSON.stringify(b)}`).toBe(true)
-    await page.getByText(words, { exact: true }).click()
-    await expect(page.getByTestId(id)).toBeChecked()
-  }
+  await page.getByTestId('start-on-tap').click() // Playwright refuses if anything covers it
+  await expect(page.getByTestId('start-on-tap')).toBeChecked()
+  await page.getByTestId('direction-up').click()
+  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'true')
+  await page.getByTestId('wheel-set').click()
+  await expectTime(page, '00:00 elapsed')
 })

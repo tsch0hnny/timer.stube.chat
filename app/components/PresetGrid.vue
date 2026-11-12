@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { PhArrowCounterClockwise } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise, PhHourglassMedium, PhTimer } from '@phosphor-icons/vue'
 import { MINUTE, select as selectCore } from '#shared/timer/core'
 import { BUILT_IN_PRESETS, missingDefaults } from '#shared/storage/store'
 import { display as displayOf } from '#shared/timer/display'
@@ -15,6 +15,7 @@ const version = useRuntimeConfig().public.appVersion as string
 const pwa = useNuxtApp().$pwa
 
 const startOnTap = computed(() => timer.prefs.value.startOnTap)
+const countUp = computed(() => timer.prefs.value.countUp)
 const wheelMs = ref(timer.prefs.value.wheelMs) // opens on the last length set with it
 function setFromWheel() {
   timer.setWheel(wheelMs.value)
@@ -72,7 +73,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 </script>
 
 <template>
-  <section class="presets" data-testid="presets" @pointerdown.capture="closeOnOutside" @scroll.passive="openId = null">
+  <section class="presets" :class="{ 'with-direction': FEATURES.countUp }" data-testid="presets" @pointerdown.capture="closeOnOutside" @scroll.passive="openId = null">
     <StatusPills :wake-lock-matters="false" />
 
     <div class="setter">
@@ -119,33 +120,34 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
             <span class="track" aria-hidden="true"><span class="knob" /></span>
           </span>
         </label>
-        <label v-if="FEATURES.countUp" class="cell">
-          <span>Count up</span>
-          <span class="switch">
-            <input
-              type="checkbox"
-              role="switch"
-              :checked="timer.prefs.value.countUp"
-              data-testid="count-up"
-              @change="timer.setCountUp(($event.target as HTMLInputElement).checked)"
-            >
-            <span class="track" aria-hidden="true"><span class="knob" /></span>
-          </span>
-        </label>
-        <label class="cell">
-          <span>Tap to show controls</span>
-          <span class="switch">
-            <input
-              type="checkbox"
-              role="switch"
-              :checked="timer.prefs.value.tapControls"
-              data-testid="tap-controls"
-              @change="timer.setTapControls(($event.target as HTMLInputElement).checked)"
-            >
-            <span class="track" aria-hidden="true"><span class="knob" /></span>
-          </span>
-        </label>
       </div>
+    </div>
+
+    <!-- Count down or up: a mode, so it floats where it is always in sight (iOS 26 puts its tab bar
+         there). Both icons show, the chosen one filled, so the state reads at a glance. -->
+    <div v-if="FEATURES.countUp" class="direction" role="radiogroup" aria-label="Timers count" data-testid="direction">
+      <button
+        type="button"
+        role="radio"
+        :aria-checked="!countUp"
+        aria-label="Count down"
+        :class="{ on: !countUp }"
+        data-testid="direction-down"
+        @click="timer.setCountUp(false)"
+      >
+        <PhHourglassMedium :size="24" weight="bold" />
+      </button>
+      <button
+        type="button"
+        role="radio"
+        :aria-checked="countUp"
+        aria-label="Count up"
+        :class="{ on: countUp }"
+        data-testid="direction-up"
+        @click="timer.setCountUp(true)"
+      >
+        <PhTimer :size="24" weight="bold" />
+      </button>
     </div>
 
     <div class="listcol">
@@ -225,6 +227,34 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   margin: 1rem 0.25rem 1.5rem;
 }
 .buttons .btn-round { width: 5.25rem; height: 5.25rem; }
+
+/* The end of the list scrolls clear of the floating direction capsule. */
+.presets.with-direction { padding-bottom: calc(var(--safe-bottom) + 0.75rem + 3.25rem + 0.75rem); }
+.direction {
+  position: fixed;
+  left: calc(env(safe-area-inset-left) + var(--gutter));
+  bottom: calc(var(--safe-bottom) + 0.75rem);
+  z-index: 3;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--menu); /* opaque, no shadow: floating things are plain menu-grey (DESIGN.md) */
+}
+.direction button {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dim);
+  touch-action: manipulation;
+  transition: background-color 160ms ease-out, color 160ms ease-out;
+}
+.direction button.on { background: var(--selected); color: #fff; }
+.direction button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
 /* Grouped cells, as the iOS timer's "When Timer Ends" row; a hairline between them, inset to the text. */
 .group {
@@ -352,13 +382,13 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .heading { margin-top: 0.5rem; }
   .buttons { margin: 0.75rem 0.25rem 1rem; }
 }
-/* Where the wheel column fits the height, it stays put and only the list scrolls. With three switches
-   it is 438 px tall up to 500 px (5-row wheel) and 506 px above, from 24 px down, plus up to 21 px
-   of home indicator: phones in landscape scroll it with the list. */
-@media (orientation: landscape) and (min-height: 560px) {
+/* Where the wheel column fits the height above the direction capsule, it stays put and only the list
+   scrolls. It is 334 px tall up to 500 px (5-row wheel) and 402 px above, from 24 px down; the
+   capsule takes 64 px plus up to 21 px of home indicator. Phones in landscape scroll it with the list. */
+@media (orientation: landscape) and (min-height: 520px) {
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .knob, .track, .restore { transition: none; }
+  .knob, .track, .restore, .direction button { transition: none; }
 }
 </style>

@@ -47,7 +47,7 @@ test('screens: presets, paused, running, overtime, picker, wake-lock pill', asyn
 })
 
 // Home-screen app size (no browser bars) and the states the first set did not capture.
-test('screens: standalone 390×844, presets landscape, hint, exit confirm, debug overlay', async ({ page }, info) => {
+test('screens: standalone 390×844, presets landscape, locked hint, exit confirm, debug overlay', async ({ page }, info) => {
   const shot = async (name: string) => {
     await page.clock.runFor(50)
     await page.waitForTimeout(350)
@@ -62,8 +62,9 @@ test('screens: standalone 390×844, presets landscape, hint, exit confirm, debug
   await page.clock.runFor(6000)
   await shot('9-standalone-running')
   const box = (await page.getByTestId('digits').boundingBox())!
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-  await shot('10-hint')
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2) // shows the controls
+  await page.getByTestId('lock').click()
+  await shot('10-locked-hint')
   await longPress(page)
   await page.getByTestId('exit').click()
   await shot('11-exit-confirm')

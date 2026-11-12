@@ -146,7 +146,7 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expectTime(page, '45:00 left')
   })
 
-  test('controls: shown while paused, fade 5 s after play, tap shows the hint, long press brings them back', async ({ page }) => {
+  test('controls: shown while paused, fade 5 s after play, a tap or a long press brings them back', async ({ page }) => {
     await openPreset(page, 15)
     await expect(page.getByTestId('controls')).toBeVisible()
     await page.clock.runFor(10_000)
@@ -157,8 +157,11 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await page.clock.runFor(1500)
     await settle(page)
     await expect(page.getByTestId('controls')).toHaveCount(0)
+    await tapStage(page) // a tap shows them (the stage lock model, 13 Nov; was a hint before)
+    await expect(page.getByTestId('controls')).toBeVisible()
+    await expect(page.getByTestId('hint')).toHaveCount(0)
     await tapStage(page)
-    await expect(page.getByTestId('hint')).toHaveText('Hold to show controls')
+    await settle(page)
     await expect(page.getByTestId('controls')).toHaveCount(0)
     await longPress(page)
     await expect(page.getByTestId('controls')).toBeVisible()

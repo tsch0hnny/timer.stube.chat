@@ -44,7 +44,15 @@ function create() {
   /** Increments each time the timer crosses into overtime while on screen (drives the shake). */
   const zeroCrossings = ref(0)
   const storageError = ref(store.lastError())
-  log('boot', `restored: ${describe(state.value)}`)
+  /** A lock belongs to the timer it was set on: none without a timer, and every new timer opens unlocked. */
+  const locked = ref(FEATURES.stageLock && state.value.status !== 'idle' && store.loadLocked())
+  function dropLock() {
+    if (!locked.value) return
+    locked.value = false
+    store.saveLocked(false)
+    log('lock', 'unlocked (timer closed)')
+  }
+  log('boot', `restored: ${describe(state.value)}${locked.value ? ', locked' : ''}`)
 
   const ticker = createTicker({
     now: () => Date.now(),
@@ -77,7 +85,7 @@ function create() {
   if (state.value.status !== 'idle') wakeLock.want(true, 'restored timer')
 
   return {
-    state, prefs, presets, now, display, phase, zeroCrossings, storageError,
+    state, prefs, presets, now, display, phase, zeroCrossings, storageError, locked,
     store,
     wakeLock,
     /**
@@ -86,6 +94,7 @@ function create() {
      */
     select(durationMs: number) {
       wakeLock.want(true, 'preset tapped')
+      dropLock()
       const paused = selectCore(durationMs, FEATURES.countUp && prefs.value.countUp)
       const label = `${Math.round(durationMs / 1000)} s`
       if (prefs.value.startOnTap) commit(start(paused, Date.now()), `select ${label} and start`)
@@ -140,10 +149,13 @@ function create() {
       store.savePrefs(prefs.value)
       log('prefs', `count up ${on ? 'on' : 'off'}`)
     },
-    setTapControls(on: boolean) {
-      prefs.value = { ...prefs.value, tapControls: on }
-      store.savePrefs(prefs.value)
-      log('prefs', `tap to show controls ${on ? 'on' : 'off'}`)
+    /** The stage lock: while it is on, taps do nothing; a long press anywhere takes it off. */
+    setLocked(on: boolean) {
+      if (on === locked.value) return
+      locked.value = on
+      store.saveLocked(on)
+      storageError.value = store.lastError()
+      log('lock', on ? 'locked' : 'unlocked')
     },
     /** The stage's reset: back to the full length (00:00 counting up), paused, ready for the next first note. */
     reset() {
@@ -152,6 +164,7 @@ function create() {
       commit(selectCore(s.durationMs, s.countUp === true), 'reset')
     },
     exit() {
+      dropLock()
       commit(clear(), 'exit')
       wakeLock.want(false, 'back to presets')
     },

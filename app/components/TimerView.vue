@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { PhArrowCounterClockwise, PhX } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise, PhLockSimple, PhLockSimpleOpen, PhX } from '@phosphor-icons/vue'
 import { FEATURES, LANDSCAPE_ROTATION } from '~/features'
 import { useStageTimer } from '~/composables/useStageTimer'
 import { useDebugOverlay } from '~/composables/useSecretTaps'
@@ -17,8 +17,11 @@ const CONFIRM_MS = 3000
 const isRunning = computed(() => timer.phase.value === 'running' || timer.phase.value === 'overtime')
 const shownWhileRunning = ref(false)
 const picking = ref(false)
-const controlsVisible = computed(() => !isRunning.value || shownWhileRunning.value)
+const locked = computed(() => timer.locked.value)
+const controlsVisible = computed(() => !locked.value && (!isRunning.value || shownWhileRunning.value))
 const hint = ref(false)
+/** What a tap on the stage says when it does nothing else. */
+const hintText = computed(() => (locked.value ? 'Hold to unlock' : 'Hold to show controls'))
 const confirmExit = ref(false)
 const confirmReset = ref(false)
 const countUp = computed(() => timer.state.value.status !== 'idle' && timer.state.value.countUp === true)
@@ -65,8 +68,9 @@ watch(isRunning, (running) => {
 })
 watch(picking, (p) => { if (p) clearTimeout(hideTimer); else scheduleHide() })
 
-// ---- stage gestures: long press shows controls (or a tap, with "Tap to show controls" on); a tap
-// shows the hint or hides them
+// ---- stage gestures. A long press anywhere shows the controls (and takes the lock off). With the
+// stage lock feature a tap shows them too, unless the stage is locked: then a tap only shows the hint.
+// Without it (c18efb0) a tap only shows the hint.
 const onControl = (e: Event) => !!(e.target as HTMLElement | null)?.closest('[data-control]')
 /**
  * When the finger lifts the browser delivers a click where it was, and the controls that touch showed
@@ -90,22 +94,38 @@ function onStageDown(e: PointerEvent) {
   if (onControl(e)) { if (isRunning.value) scheduleHide(); return }
   longPressFired = false
   clearTimeout(pressTimer)
-  if (isRunning.value && !shownWhileRunning.value) {
-    pressTimer = setTimeout(() => { longPressFired = true; swallowClick = true; showControls() }, LONG_PRESS_MS)
+  if (locked.value || (isRunning.value && !shownWhileRunning.value)) {
+    pressTimer = setTimeout(() => {
+      longPressFired = true
+      swallowClick = true
+      timer.setLocked(false)
+      showControls()
+    }, LONG_PRESS_MS)
   }
 }
-function onStageUp(e: PointerEvent) {
-  clearTimeout(pressTimer)
-  if (onControl(e) || longPressFired || !isRunning.value) return
-  if (shownWhileRunning.value) { hideControls(); return }
-  if (timer.prefs.value.tapControls) { showControls(); swallowClick = true; return }
+function flashHint() {
   hint.value = true
   clearTimeout(hintTimer)
   hintTimer = setTimeout(() => { hint.value = false }, HINT_MS)
 }
+function onStageUp(e: PointerEvent) {
+  clearTimeout(pressTimer)
+  if (onControl(e) || longPressFired) return
+  if (locked.value) { flashHint(); return }
+  if (!isRunning.value) return
+  if (shownWhileRunning.value) { hideControls(); return }
+  if (FEATURES.stageLock) { showControls(); swallowClick = true; return }
+  flashHint()
+}
 function onStageCancel() { clearTimeout(pressTimer) }
 
 // ---- actions
+/** The padlock: the controls go, and the stage says how to get them back. */
+function onLock() {
+  hideControls()
+  timer.setLocked(true)
+  flashHint()
+}
 function onToggle() { timer.toggle(); scheduleHide() }
 function onStep(sign: 1 | -1, minutes: number) { timer.step(sign, minutes); scheduleHide() }
 function onExit() {
@@ -132,7 +152,7 @@ function onReset() {
 function onConfirmReset() { clearTimeout(resetTimer); confirmReset.value = false; timer.reset() }
 
 function onKey(e: KeyboardEvent) {
-  if (debug.debugOpen.value) return
+  if (debug.debugOpen.value || locked.value) return
   if (e.key === ' ' || e.key === 'k') { e.preventDefault(); onToggle() }
   else if (e.key === 'ArrowUp' || e.key === 'ArrowRight') { e.preventDefault(); onStep(1, timer.prefs.value.stepMinutes) }
   else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') { e.preventDefault(); onStep(-1, timer.prefs.value.stepMinutes) }
@@ -193,7 +213,9 @@ const display = timer.display
         <StatusPills :wake-lock-matters="true" />
 
         <Transition name="fade">
-          <p v-if="hint && !controlsVisible" class="hint capsule" data-testid="hint">Hold to show controls</p>
+          <p v-if="hint && !controlsVisible" class="hint capsule" data-testid="hint">
+            <PhLockSimple v-if="locked" :size="20" weight="bold" aria-hidden="true" />{{ hintText }}
+          </p>
         </Transition>
 
         <Transition name="fade">
@@ -260,6 +282,19 @@ const display = timer.display
                 <StepButton :sign="1" :step="5" :picker="false" @act="(m) => onStep(1, m)" />
               </template>
             </div>
+
+            <!-- The padlock, bottom left: the stage then ignores taps until a long press anywhere. -->
+            <button
+              v-if="FEATURES.stageLock"
+              type="button"
+              class="btn-round exit-btn lock"
+              aria-label="Lock the screen"
+              data-control
+              data-testid="lock"
+              @click="onLock"
+            >
+              <PhLockSimpleOpen :size="22" weight="bold" />
+            </button>
 
             <button type="button" class="version" data-control data-testid="version" @click="debug.tap">{{ version }}</button>
           </div>
@@ -364,6 +399,12 @@ const display = timer.display
   color: #fff;
   font: inherit;
 }
+/* Bottom left, level with the middle of the play row, mirroring the version label's corner. */
+.lock {
+  position: absolute;
+  left: calc(0.75rem + var(--notch-left, 0px));
+  bottom: calc(var(--row-bottom) + (var(--play-size) - 3.25rem) / 2);
+}
 .version {
   position: absolute;
   right: calc(0.75rem + var(--notch-right, 0px));
@@ -384,6 +425,10 @@ const display = timer.display
   padding: 0.6em 1.2em;
   border-radius: 999px;
   font: 700 1.25rem / 1.2 system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   pointer-events: none;
 }
 
