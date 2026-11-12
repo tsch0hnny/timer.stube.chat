@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Spike">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png">
+<title>Timer device spike</title>
+<style>
+  :root { color-scheme: dark; --ok: #30d158; --bad: #ff453a; --warn: #ffd60a; --dim: #8e8e93; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #000; color: #fff; }
+  body { font: 14px/1.35 ui-monospace, Menlo, monospace; -webkit-text-size-adjust: 100%; }
+  button { font: inherit; color: #fff; background: #1c1c1e; border: 1px solid #3a3a3c; border-radius: 10px; padding: 10px 12px; margin: 3px 3px 3px 0; touch-action: manipulation; }
+  button:active { background: #3a3a3c; }
+  button.on { border-color: var(--ok); color: var(--ok); }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); } .dim { color: var(--dim); }
+
+  /* ---------- Report view ---------- */
+  #report { padding: calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 12px) calc(env(safe-area-inset-bottom) + 24px) calc(env(safe-area-inset-left) + 12px); }
+  h1 { font-size: 17px; margin: 4px 0 2px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 18px 0 4px; border-top: 1px solid #2c2c2e; padding-top: 10px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 0; }
+  dt { color: var(--dim); } dd { margin: 0; word-break: break-word; }
+  #log { font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  textarea { width: 100%; height: 160px; background: #111; color: #fff; font: 11px ui-monospace, monospace; border: 1px solid #3a3a3c; }
+  .probe { position: absolute; left: -9999px; top: 0; width: 1px; visibility: hidden; pointer-events: none; }
+  #digitlab { position: absolute; left: -99999px; top: 0; visibility: hidden; white-space: pre; }
+  .banner { position: sticky; top: 0; background: var(--warn); color: #000; padding: 8px; border-radius: 8px; margin-bottom: 8px; }
+
+  /* ---------- Stage view: CSS-rotated landscape ---------- */
+  #stage { position: fixed; inset: 0; background: #000; container-type: size; overflow: hidden; display: none; }
+  body.view-stage #stage { display: block; }
+  body.view-stage #report { display: none; }
+  #land { position: absolute; top: 0; left: 0; }
+  /* No rotation: content follows the viewport. */
+  #stage[data-rot="none"] #land { width: 100cqw; height: 100cqh;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  /* Clockwise: content top = physical right, content left = physical top (notch). */
+  #stage[data-rot="cw"] #land { width: 100cqh; height: 100cqw; transform-origin: 0 0;
+    transform: translateX(100cqw) rotate(90deg);
+    padding: env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left) env(safe-area-inset-top); }
+  /* Counter-clockwise: content top = physical left, content right = physical top (notch). */
+  #stage[data-rot="ccw"] #land { width: 100cqh; height: 100cqw; transform-origin: 0 0;
+    transform: translateY(100cqh) rotate(-90deg);
+    padding: env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom); }
+  #land { outline: 3px solid var(--bad); outline-offset: -3px; }          /* red = full screen box */
+  #safe { position: relative; width: 100%; height: 100%; container-type: size;
+          outline: 2px dashed var(--ok); outline-offset: -2px; display: grid; place-items: center; } /* green = safe area */
+  #digits { font-family: system-ui, -apple-system, sans-serif; font-weight: 700; font-variant-numeric: tabular-nums;
+            line-height: 1; white-space: nowrap; color: #fff; font-size: calc(var(--k, 1) * min(33cqw, 78cqh)); }
+  #digits.hms { font-size: calc(var(--k, 1) * min(25.5cqw, 78cqh)); }
+  #digits.over { color: var(--bad); }
+  #hud { position: absolute; left: 8px; right: 8px; bottom: 6px; font: 600 13px/1.3 system-ui, sans-serif; color: #aeaeb2;
+         display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  #hud b.ok { color: var(--ok); } #hud b.bad { color: var(--bad); }
+  #wlbig { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font: 800 20px system-ui, sans-serif;
+           padding: 4px 12px; border-radius: 8px; background: #d70015; color: #fff; display: none; white-space: nowrap; }
+  #wlbig.show { display: block; }
+  #tools { position: absolute; top: 6px; left: 6px; right: 6px; display: none; flex-wrap: wrap; justify-content: center;
+           background: rgba(28,28,30,.92); border-radius: 12px; padding: 4px; font: 13px system-ui, sans-serif; }
+  #tools.show { display: flex; }
+  #tools button { padding: 8px 10px; margin: 2px; }
+</style>
+</head>
+<body>
+<div id="report">
+  <div id="updbanner" class="banner" hidden>A new spike version is active. <button id="btnReloadNow">Reload</button></div>
+  <h1>Timer device spike <span id="ver" class="dim"></span></h1>
+  <div class="dim" id="ctxline"></div>
+  <div style="margin-top:8px">
+    <button id="btnStage">Open stage view ▶</button>
+    <button id="btnCopy">Copy report</button>
+    <button id="btnShare">Share report</button>
+  </div>
+
+  <h2>1 · Wake lock</h2>
+  <dl id="wl"></dl>
+  <div><button id="btnWL">Request (with tap)</button><button id="btnWLrel">Release</button><button id="btnWLwant">Auto re-acquire: on</button></div>
+
+  <h2>2 · Viewport, safe areas, orientation</h2>
+  <dl id="vp"></dl>
+  <div><button id="btnLock">Try screen.orientation.lock('landscape')</button><button id="btnUnlock">unlock()</button></div>
+
+  <h2>3 · Storage</h2>
+  <dl id="st"></dl>
+  <div>
+    <button data-cd="60000">Start 1-min test countdown</button>
+    <button data-cd="600000">10-min</button>
+    <button data-cd="3600000">60-min</button>
+    <button id="btnCdClear">Clear countdown</button>
+    <button id="btnPersist">navigator.storage.persist()</button>
+  </div>
+
+  <h2>4 · Offline / service worker</h2>
+  <dl id="sw"></dl>
+  <div><button id="btnPing">Ping network now</button><button id="btnSwUpdate">Check for SW update</button></div>
+
+  <h2>5 · Digit widths (system-ui 700)</h2>
+  <dl id="dg"></dl>
+
+  <h2>6 · Event log <span class="dim">(persists across reloads, newest first)</span></h2>
+  <div><button id="btnClearLog">Clear log</button><button id="btnResetAll">Reset all spike data</button></div>
+  <div id="log"></div>
+  <textarea id="reportbox" hidden readonly></textarea>
+</div>
+
+<div id="stage" data-rot="cw">
+  <div id="land">
+    <div id="safe">
+      <div id="digits">60:00</div>
+      <div id="wlbig">SCREEN MAY SLEEP – wake lock off</div>
+      <div id="hud"></div>
+      <div id="tools">
+        <button data-rot="none">No rotation</button><button data-rot="cw">Rotate ↻</button><button data-rot="ccw">Rotate ↺</button><button data-rot="auto">Auto</button>
+        <button data-fmt="ms">MM:SS</button><button data-fmt="hms">H:MM:SS</button>
+        <button data-k="0.75">S</button><button data-k="0.9">M</button><button data-k="1">L</button>
+        <button id="btnBack">◀ Report</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="probe" id="p-vh" style="height:100vh"></div>
+<div class="probe" id="p-dvh" style="height:100dvh"></div>
+<div class="probe" id="p-svh" style="height:100svh"></div>
+<div class="probe" id="p-lvh" style="height:100lvh"></div>
+<div class="probe" id="p-safe" style="padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)"></div>
+<div id="digitlab"></div>
+
+<script>
+'use strict'
+const SPIKE_VERSION = 'spike-1'
+const $ = (id) => document.getElementById(id)
+const now = () => Date.now()
+const P = 'spike:'
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(P + k); return v == null ? d : JSON.parse(v) } catch { return d } },
+  set(k, v) { try { localStorage.setItem(P + k, JSON.stringify(v)); return true } catch (e) { state.lsError = e.name; return false } },
+}
+const pad = (n) => String(n).padStart(2, '0')
+const hms = (t) => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` }
+const dur = (ms) => { const s = Math.round(ms / 1000); return s >= 3600 ? `${Math.floor(s/3600)}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}` : `${Math.floor(s/60)}:${pad(s%60)}` }
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
+
+function displayMode() {
+  for (const m of ['fullscreen', 'standalone', 'minimal-ui', 'browser']) if (matchMedia(`(display-mode: ${m})`).matches) return m
+  return 'unknown'
+}
+const CTX = (displayMode() !== 'browser' || navigator.standalone === true) ? 'app' : 'tab'
+
+const state = {
+  loadedAt: now(),
+  navType: (performance.getEntriesByType('navigation')[0] || {}).type || '?',
+  wl: { sentinel: null, acquiredAt: null, acquired: 0, released: 0, lastError: null, results: LS.get('wlResults:' + CTX, {}) },
+  wantWL: LS.get('wantWL', true),
+  lastTouch: now(),
+  visibleSince: document.visibilityState === 'visible' ? now() : null,
+  maxUntouched: LS.get('maxUntouched:' + CTX, { s: 0, at: null, wl: null }),
+  lastBeat: now(),
+  maxGap: 0,
+  ping: { result: 'not yet', at: null },
+  sw: { supported: 'serviceWorker' in navigator, controlledAtLoad: !!(navigator.serviceWorker && navigator.serviceWorker.controller), version: null, reg: null, caches: '?' },
+  storage: { persisted: '?', estimate: '?' },
+  lockResult: 'not tried',
+  lsError: null,
+  rot: LS.get('rot', 'cw'), fmt: LS.get('fmt', 'ms'), k: LS.get('k', 1),
+}
+
+/* ---------- persistent event log ---------- */
+let logArr = LS.get('log', [])
+function log(type, detail = '') {
+  logArr.unshift({ t: now(), ctx: CTX, type, detail: String(detail) })
+  if (logArr.length > 250) logArr.length = 250
+  LS.set('log', logArr)
+  renderLog()
+}
+function renderLog() {
+  $('log').innerHTML = logArr.slice(0, 120).map((e) => {
+    const cls = /error|fail|lost|gap|denied|offline/i.test(e.type) ? 'bad' : /acquired|ok|online/.test(e.type) ? 'ok' : ''
+    return `<div><span class="dim">${hms(e.t)}.${String(e.t % 1000).padStart(3, '0')} ${e.ctx}</span> <span class="${cls}">${esc(e.type)}</span> ${esc(e.detail)}</div>`
+  }).join('')
+}
+
+/* ---------- storage bookkeeping (survives lock / reload / reopen?) ---------- */
+const loadCount = LS.get('loadCount', 0) + 1
+LS.set('loadCount', loadCount)
+const firstSeen = LS.get('firstSeen', null) || { t: now(), ctx: CTX }
+LS.set('firstSeen', firstSeen)
+const ctxSeen = new Set(LS.get('ctxSeen', [])); ctxSeen.add(CTX); LS.set('ctxSeen', [...ctxSeen])
+const prevBeat = LS.get('lastBeat', null)
+log('load', `#${loadCount} nav=${state.navType} mode=${displayMode()} controlled=${state.sw.controlledAtLoad} online=${navigator.onLine}` +
+  (prevBeat ? ` · last heartbeat ${dur(now() - prevBeat.t)} ago (${prevBeat.ctx}, vis=${prevBeat.vis})` : ''))
+
+/* ---------- wake lock ---------- */
+function recordResult(kind, val) { state.wl.results[kind] = `${val} @${hms(now())}`; LS.set('wlResults:' + CTX, state.wl.results) }
+async function requestWL(reason, kind) {
+  if (!('wakeLock' in navigator)) { recordResult(kind, 'unsupported'); log('wl-unsupported', reason); render(); return }
+  if (state.wl.sentinel && !state.wl.sentinel.released) { log('wl-skip', `${reason}: already held`); return }
+  try {
+    const s = await navigator.wakeLock.request('screen')
+    state.wl.sentinel = s; state.wl.acquiredAt = now(); state.wl.acquired++; state.wl.lastError = null
+    recordResult(kind, 'ok')
+    log('wl-acquired', reason)
+    s.addEventListener('release', () => {
+      state.wl.released++
+      log(document.visibilityState === 'visible' ? 'wl-lost-while-visible' : 'wl-released', `held ${dur(now() - state.wl.acquiredAt)}, visibility=${document.visibilityState}`)
+      if (state.wl.sentinel === s) state.wl.sentinel = null
+      render()
+      if (state.wantWL && document.visibilityState === 'visible') setTimeout(() => requestWL('re-acquire after loss while visible', 'afterLoss'), 1000)
+    })
+  } catch (e) {
+    state.wl.lastError = `${e.name}: ${e.message}`
+    recordResult(kind, e.name)
+    log('wl-error', `${reason}: ${e.name}: ${e.message}`)
+  }
+  render()
+}
+const wlHeld = () => !!(state.wl.sentinel && !state.wl.sentinel.released)
+
+/* ---------- visibility & lifecycle ---------- */
+document.addEventListener('visibilitychange', () => {
+  const v = document.visibilityState
+  if (v === 'visible') {
+    state.visibleSince = now()
+    log('visible', `hidden for ${state.hiddenAt ? dur(now() - state.hiddenAt) : '?'}`)
+    if (state.wantWL) requestWL('visibilitychange→visible, no tap', 'onVisibleNoTap')
+    checkGap('visible')
+  } else {
+    state.hiddenAt = now(); state.visibleSince = null
+    log('hidden', '')
+  }
+  beat(); render()
+})
+addEventListener('pageshow', (e) => log('pageshow', `persisted(bfcache)=${e.persisted}`))
+addEventListener('pagehide', (e) => { log('pagehide', `persisted=${e.persisted}`); beat() })
+document.addEventListener('freeze', () => log('freeze'))
+document.addEventListener('resume', () => log('resume'))
+addEventListener('online', () => log('online', ''))
+addEventListener('offline', () => log('offline', ''))
+const touched = () => {
+  state.lastTouch = now()
+  if (state.wantWL && !wlHeld() && document.visibilityState === 'visible') requestWL('first tap after lock was missing', 'onTap')
+}
+addEventListener('pointerdown', touched, { capture: true })
+addEventListener('keydown', touched, { capture: true })
+
+/* ---------- heartbeat: detects when the page was frozen (screen off) ---------- */
+function beat() { state.lastBeat = now(); LS.set('lastBeat', { t: state.lastBeat, ctx: CTX, vis: document.visibilityState }) }
+function checkGap(why) {
+  const gap = now() - state.lastBeat
+  if (gap > 2500) { state.maxGap = Math.max(state.maxGap, gap); log('gap', `no heartbeat for ${dur(gap)} (${why}) — page was frozen/suspended`) }
+}
+
+/* ---------- untouched-and-visible stretch = proof the screen stayed on ---------- */
+function untouchedNow() {
+  if (document.visibilityState !== 'visible' || !state.visibleSince) return 0
+  return Math.max(0, now() - Math.max(state.lastTouch, state.visibleSince))
+}
+function trackUntouched() {
+  const u = untouchedNow()
+  if (u / 1000 > state.maxUntouched.s + 0.5) {
+    state.maxUntouched = { s: Math.floor(u / 1000), at: now(), wl: wlHeld(), rot: state.rot, view: document.body.className }
+    LS.set('maxUntouched:' + CTX, state.maxUntouched)
+  }
+}
+
+/* ---------- viewport / safe areas ---------- */
+function vp() {
+  const ps = getComputedStyle($('p-safe'))
+  const so = screen.orientation
+  return {
+    inner: `${innerWidth}×${innerHeight}`,
+    visualViewport: window.visualViewport ? `${Math.round(visualViewport.width)}×${Math.round(visualViewport.height)} scale ${visualViewport.scale}` : 'n/a',
+    clientWH: `${document.documentElement.clientWidth}×${document.documentElement.clientHeight}`,
+    screen: `${screen.width}×${screen.height} dpr ${devicePixelRatio}`,
+    'vh/dvh/svh/lvh': ['p-vh', 'p-dvh', 'p-svh', 'p-lvh'].map((id) => $(id).offsetHeight).join(' / '),
+    'safe t/r/b/l': [ps.paddingTop, ps.paddingRight, ps.paddingBottom, ps.paddingLeft].map((x) => parseFloat(x)).join(' / '),
+    orientation: `${so ? so.type + ' ' + so.angle + '°' : 'no screen.orientation'} · mq=${matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape'} · window.orientation=${window.orientation ?? 'n/a'}`,
+    'orientation.lock': state.lockResult,
+    'stage rect': stageRects(),
+  }
+}
+function stageRects() {
+  if (!document.body.classList.contains('view-stage')) return 'open stage view to measure'
+  const l = $('land').getBoundingClientRect(), s = $('safe').getBoundingClientRect()
+  const r = (x) => `${Math.round(x.left)},${Math.round(x.top)} ${Math.round(x.width)}×${Math.round(x.height)}`
+  const fills = Math.round(l.width) === innerWidth && Math.round(l.height) === innerHeight
+  return `rot=${$('stage').dataset.rot} full ${r(l)} ${fills ? '(fills viewport)' : '(DOES NOT fill viewport)'} · safe ${r(s)}`
+}
+
+/* ---------- countdown stored as an absolute end time ---------- */
+function countdown() { return LS.get('countdown', null) }
+function fmtTimer(ms, forceH) {
+  const over = ms < 0
+  const s = over ? Math.floor(-ms / 1000) : Math.ceil(ms / 1000)
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60
+  const body = (forceH || h > 0) ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
+  return (over ? '−' : '') + body
+}
+
+/* ---------- service worker ---------- */
+async function setupSW() {
+  if (!state.sw.supported) { log('sw-unsupported'); return }
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js')
+    state.sw.reg = reg
+    log('sw-registered', `scope=${reg.scope}`)
+    reg.addEventListener('updatefound', () => log('sw-updatefound'))
+  } catch (e) { log('sw-register-error', `${e.name}: ${e.message}`) }
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (state.sw.controlledAtLoad) { log('sw-controllerchange', 'new version took over'); $('updbanner').hidden = false }
+    else log('sw-claimed', 'page now controlled (first install)')
+    askSWVersion()
+  })
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'sw-version') { state.sw.version = e.data.version; render() }
+  })
+  askSWVersion()
+}
+function askSWVersion() { const c = navigator.serviceWorker && navigator.serviceWorker.controller; if (c) c.postMessage('version') }
+async function cacheSummary() {
+  if (!('caches' in window)) return 'no Cache Storage'
+  const keys = await caches.keys()
+  const parts = await Promise.all(keys.map(async (k) => `${k}: ${(await (await caches.open(k)).keys()).length} entries`))
+  return parts.join(' · ') || 'empty'
+}
+async function ping(why) {
+  const t0 = performance.now()
+  try {
+    const r = await fetch(`/ping.txt?t=${now()}`, { cache: 'no-store' })
+    state.ping = { result: `ok ${r.status} in ${Math.round(performance.now() - t0)} ms`, at: now() }
+    log('ping-ok', `${why}: ${r.status}`)
+  } catch (e) {
+    state.ping = { result: `FAILED (${e.name}) — no network`, at: now() }
+    log('ping-failed', `${why}: ${e.name}${why === 'load' ? ' · page itself was served offline from the SW cache' : ''}`)
+  }
+  render()
+}
+
+/* ---------- digit widths ---------- */
+function digitWidths() {
+  const lab = $('digitlab')
+  const measure = (tabular) => {
+    lab.style.cssText += `;font: 700 200px system-ui, -apple-system, sans-serif; font-variant-numeric: ${tabular ? 'tabular-nums' : 'normal'}`
+    const out = {}
+    for (const ch of ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', '-', '−']) {
+      lab.textContent = ch
+      out[ch] = Math.round(lab.getBoundingClientRect().width * 100) / 100
+    }
+    return out
+  }
+  const tab = measure(true), prop = measure(false)
+  const dw = (o) => [...'0123456789'].map((c) => o[c])
+  const same = (o) => new Set(dw(o)).size === 1
+  return {
+    'tabular-nums 0-9': `${dw(tab).join(' ')} → ${same(tab) ? '<span class="ok">all equal</span>' : '<span class="bad">NOT equal</span>'}`,
+    'tabular colon/hyphen/minus': `${tab[':']} / ${tab['-']} / ${tab['−']}`,
+    'proportional 0-9': `${dw(prop).join(' ')} → ${same(prop) ? 'all equal' : 'differ (so tabular-nums matters)'}`,
+    _raw: { tab, prop },
+  }
+}
+let digitInfo = null
+
+/* ---------- render ---------- */
+function dl(id, obj) { $(id).innerHTML = Object.entries(obj).filter(([k]) => !k.startsWith('_')).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('') }
+const yes = (b, t = 'yes', f = 'no') => b ? `<span class="ok">${t}</span>` : `<span class="bad">${f}</span>`
+
+function render() {
+  $('ver').textContent = SPIKE_VERSION
+  $('ctxline').textContent = `context=${CTX} · display-mode=${displayMode()} · navigator.standalone=${navigator.standalone} · loaded ${hms(state.loadedAt)} (${state.navType}) · load #${loadCount}`
+  $('btnWLwant').textContent = `Auto re-acquire: ${state.wantWL ? 'on' : 'off'}`
+  dl('wl', {
+    supported: yes('wakeLock' in navigator),
+    'held now': wlHeld() ? `<span class="ok">YES</span> for ${dur(now() - state.wl.acquiredAt)}` : '<span class="bad">NO</span>',
+    'acquired / released': `${state.wl.acquired} / ${state.wl.released} (this page load)`,
+    'last error': state.wl.lastError ? `<span class="bad">${esc(state.wl.lastError)}</span>` : '–',
+    'results (this context)': Object.entries(state.wl.results).map(([k, v]) => `${k}=${/^ok/.test(v) ? '<span class="ok">' + v + '</span>' : '<span class="bad">' + v + '</span>'}`).join('<br>') || '–',
+    'untouched & visible now': dur(untouchedNow()),
+    'longest untouched & visible': `<b>${dur(state.maxUntouched.s * 1000)}</b>${state.maxUntouched.at ? ` (ended/updated ${hms(state.maxUntouched.at)}, wake lock ${state.maxUntouched.wl ? 'held' : 'NOT held'})` : ''}`,
+    visibility: document.visibilityState,
+  })
+  const v = vp()
+  dl('vp', Object.fromEntries(Object.entries(v).map(([k, x]) => [k, esc(x)])))
+  const cd = countdown()
+  dl('st', {
+    'localStorage': state.lsError ? `<span class="bad">${state.lsError}</span>` : '<span class="ok">writable</span>',
+    'load count': loadCount,
+    'first seen': `${new Date(firstSeen.t).toLocaleString()} in ${firstSeen.ctx}`,
+    'contexts seen in this storage': [...ctxSeen].join(' + ') + (ctxSeen.size > 1 ? ' (tab and app SHARE storage)' : ''),
+    'test countdown': cd ? `${fmtTimer(cd.endAt - now())} · started ${hms(cd.startedAt)} in ${cd.ctx} · ends ${hms(cd.endAt)} (end stored as ${new Date(cd.endAt).toISOString()})` : 'none',
+    'storage.persisted()': state.storage.persisted,
+    'storage.estimate()': state.storage.estimate,
+  })
+  dl('sw', {
+    supported: yes(state.sw.supported),
+    'controlled at load': yes(state.sw.controlledAtLoad, 'yes (page came through the SW)', 'no (first visit or SW missing)'),
+    'controlled now': yes(!!(navigator.serviceWorker && navigator.serviceWorker.controller)),
+    'SW version': state.sw.version || '?',
+    'navigator.onLine': String(navigator.onLine),
+    'last ping': `${state.ping.result}${state.ping.at ? ' @' + hms(state.ping.at) : ''}`,
+    caches: state.sw.caches,
+  })
+  if (digitInfo) dl('dg', digitInfo)
+  renderStage()
+}
+
+function renderStage() {
+  const stage = $('stage')
+  const portrait = matchMedia('(orientation: portrait)').matches
+  stage.dataset.rot = state.rot === 'auto' ? (portrait ? 'cw' : 'none') : state.rot
+  const cd = countdown()
+  const d = $('digits')
+  d.style.setProperty('--k', state.k)
+  let ms
+  if (cd) ms = cd.endAt - now()
+  else ms = state.fmt === 'hms' ? 5400000 : 3600000
+  const forceH = state.fmt === 'hms'
+  d.textContent = fmtTimer(ms, forceH)
+  d.classList.toggle('hms', forceH || Math.abs(ms) >= 3600000 + 1000)
+  d.classList.toggle('over', ms < 0)
+  const held = wlHeld()
+  $('wlbig').classList.toggle('show', !held)
+  $('hud').innerHTML = `<b class="${held ? 'ok' : 'bad'}">wake lock ${held ? 'ON' : 'OFF'}</b>` +
+    `<span>untouched ${dur(untouchedNow())} (max ${dur(state.maxUntouched.s * 1000)})</span>` +
+    `<span>${CTX} · rot ${state.rot}${state.rot === 'auto' ? '→' + stage.dataset.rot : ''}</span>` +
+    `<span>${cd ? 'countdown' : 'demo (no countdown)'}</span><span>${hms(now())}</span>`
+  for (const b of document.querySelectorAll('#tools [data-rot]')) b.classList.toggle('on', b.dataset.rot === state.rot)
+  for (const b of document.querySelectorAll('#tools [data-fmt]')) b.classList.toggle('on', b.dataset.fmt === state.fmt)
+  for (const b of document.querySelectorAll('#tools [data-k]')) b.classList.toggle('on', Number(b.dataset.k) === state.k)
+}
+
+/* ---------- second-aligned tick (display only) ---------- */
+function tick() {
+  checkGap('tick'); beat(); trackUntouched(); render()
+  setTimeout(tick, 1000 - (now() % 1000) + 10)
+}
+
+/* ---------- UI wiring ---------- */
+function setView(v) { document.body.className = v === 'stage' ? 'view-stage' : ''; LS.set('view', v); log('view', v); render() }
+$('btnStage').onclick = () => setView('stage')
+$('btnBack').onclick = (e) => { e.stopPropagation(); setView('report') }
+$('stage').addEventListener('click', (e) => {
+  const b = e.target.closest('button')
+  if (!b) { $('tools').classList.toggle('show'); return }
+  if (b.dataset.rot) { state.rot = b.dataset.rot; LS.set('rot', state.rot); log('rotation-mode', state.rot) }
+  if (b.dataset.fmt) { state.fmt = b.dataset.fmt; LS.set('fmt', state.fmt) }
+  if (b.dataset.k) { state.k = Number(b.dataset.k); LS.set('k', state.k) }
+  render()
+})
+$('btnWL').onclick = () => requestWL('button tap', 'buttonTap')
+$('btnWLrel').onclick = async () => { if (state.wl.sentinel) await state.wl.sentinel.release(); state.wantWL = false; LS.set('wantWL', false); render() }
+$('btnWLwant').onclick = () => { state.wantWL = !state.wantWL; LS.set('wantWL', state.wantWL); if (state.wantWL) requestWL('auto re-acquire switched on', 'buttonTap'); render() }
+$('btnLock').onclick = async () => {
+  try { await screen.orientation.lock('landscape'); state.lockResult = 'ok (locked)'; log('orientation-lock-ok') }
+  catch (e) { state.lockResult = `${e.name}: ${e.message}`; log('orientation-lock-error', state.lockResult) }
+  render()
+}
+$('btnUnlock').onclick = () => { try { screen.orientation.unlock(); state.lockResult += ' · unlocked' } catch (e) { state.lockResult += ` · unlock ${e.name}` } render() }
+for (const b of document.querySelectorAll('[data-cd]')) b.onclick = () => {
+  const ms = Number(b.dataset.cd)
+  LS.set('countdown', { endAt: now() + ms, startedAt: now(), durationMs: ms, ctx: CTX })
+  log('countdown-start', `${dur(ms)} → ends ${hms(now() + ms)}`); render()
+}
+$('btnCdClear').onclick = () => { localStorage.removeItem(P + 'countdown'); log('countdown-clear'); render() }
+$('btnPersist').onclick = async () => {
+  try { const r = await navigator.storage.persist(); log('storage-persist', String(r)); await storageInfo() } catch (e) { log('storage-persist-error', `${e.name}: ${e.message}`) }
+}
+$('btnPing').onclick = () => ping('button')
+$('btnSwUpdate').onclick = async () => { try { await state.sw.reg?.update(); log('sw-update-checked') } catch (e) { log('sw-update-error', `${e.name}: ${e.message}`) } }
+$('btnReloadNow').onclick = () => location.reload()
+$('btnClearLog').onclick = () => { logArr = []; LS.set('log', logArr); renderLog() }
+$('btnResetAll').onclick = () => {
+  if (!confirm('Delete all spike data in this context (log, counters, countdown)?')) return
+  for (const k of Object.keys(localStorage)) if (k.startsWith(P)) localStorage.removeItem(k)
+  location.reload()
+}
+async function storageInfo() {
+  try { state.storage.persisted = String(await navigator.storage.persisted()) } catch (e) { state.storage.persisted = e.name }
+  try { const e = await navigator.storage.estimate(); state.storage.estimate = `usage ${Math.round(e.usage / 1024)} KiB of quota ${Math.round(e.quota / 1048576)} MiB` } catch (e) { state.storage.estimate = e.name }
+  render()
+}
+
+function buildReport() {
+  return JSON.stringify({
+    spike: SPIKE_VERSION, at: new Date().toISOString(), ctx: CTX, displayMode: displayMode(), standalone: navigator.standalone,
+    ua: navigator.userAgent, loadCount, firstSeen, ctxSeen: [...ctxSeen], navType: state.navType,
+    wakeLock: { supported: 'wakeLock' in navigator, heldNow: wlHeld(), acquired: state.wl.acquired, released: state.wl.released, lastError: state.wl.lastError, results: state.wl.results, maxUntouched: state.maxUntouched },
+    viewport: vp(), rotationMode: state.rot,
+    storage: { ...state.storage, countdown: countdown(), lsError: state.lsError },
+    sw: { supported: state.sw.supported, controlledAtLoad: state.sw.controlledAtLoad, controlledNow: !!(navigator.serviceWorker && navigator.serviceWorker.controller), version: state.sw.version, caches: state.sw.caches, ping: state.ping, onLine: navigator.onLine },
+    digits: digitInfo && digitInfo._raw,
+    log: logArr.slice(0, 80).map((e) => `${new Date(e.t).toISOString()} ${e.ctx} ${e.type} ${e.detail}`),
+  }, null, 1)
+}
+$('btnCopy').onclick = async () => {
+  const text = buildReport()
+  try { await navigator.clipboard.writeText(text); log('report-copied', `${text.length} chars`) }
+  catch (e) { const box = $('reportbox'); box.hidden = false; box.value = text; box.focus(); box.select(); log('report-copy-fallback', e.name) }
+}
+$('btnShare').onclick = async () => {
+  try { await navigator.share({ title: 'Timer spike report', text: buildReport() }) } catch (e) { log('share-error', e.name) }
+}
+matchMedia('(orientation: portrait)').addEventListener('change', (e) => { log('orientation-change', e.matches ? 'portrait' : 'landscape'); render() })
+addEventListener('resize', () => render())
+
+/* ---------- boot ---------- */
+if (LS.get('view', 'report') === 'stage') document.body.className = 'view-stage'
+renderLog()
+digitInfo = digitWidths()
+render()
+if (state.wantWL && document.visibilityState === 'visible') requestWL('page load, no tap', 'onLoadNoTap')
+setupSW().then(async () => { state.sw.caches = await cacheSummary(); render() })
+storageInfo()
+ping('load')
+setInterval(async () => { state.sw.caches = await cacheSummary() }, 10000)
+tick()
+</script>
+</body>
+</html>

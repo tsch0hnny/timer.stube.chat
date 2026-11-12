@@ -1,0 +1,23 @@
+# Device spike at https://test-timer.stube.chat (later reused as staging).
+# On the VPS:  cd /opt/timer/src && git pull && docker compose -f spike/compose.yaml up -d --build
+name: timer-test
+
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: spike/Dockerfile
+    image: timer-stube-chat:spike
+    restart: unless-stopped
+    networks: [traefik_net]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik_net
+      traefik.http.routers.timer-test.rule: Host(`test-timer.stube.chat`)
+      traefik.http.routers.timer-test.entrypoints: websecure
+      traefik.http.routers.timer-test.tls.certresolver: letsencrypt
+      traefik.http.services.timer-test.loadbalancer.server.port: "80"
+
+networks:
+  traefik_net:
+    external: true
