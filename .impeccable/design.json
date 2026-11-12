@@ -493,7 +493,7 @@
     "rules": [
       {
         "name": "The One Meaning Rule",
-        "body": "Green is start, red is overtime, amber is \"needs a tap\", deep red is End. No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.",
+        "body": "Green is start, red is overtime, amber is \"needs a tap\", deep red is destructive (End, Delete). No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.",
         "section": "colors"
       },
       {

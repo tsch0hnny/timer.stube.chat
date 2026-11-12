@@ -38,6 +38,13 @@ alongside other work).
    - Dial 1 hours, 7 min, 30 sec and tap the green **Set**: **the timer opens paused at 1:07:30?**
      Tap ✕. **The wheel shows 1:07:30 again?** Tap the reset arrow: **0:00:00, and Set greyed out?**
    - Scroll the Presets list. **All 12 readable, "1:15:00" over "1 hr, 15 min" and so on?**
+   - Swipe the 30:00 row to the left: **it follows your finger and a red Delete appears behind
+     it?** Let go: it rests open. Tap Delete: **the row collapses and the rows below move up?**
+     Swipe 45:00 all the way across: **it deletes on release?** Tap a row while another is open:
+     **it only closes, no timer opens?** At the end of the list, tap **Restore Default Presets**:
+     **30:00 and 45:00 are back?**
+   - Dial 0 hours, 42 min, 15 sec and tap **Set**, then ✕: **the list has 42:15 ("42 min, 15
+     secs") between 30:00 and 45:00, lit up for a moment?** Swipe it away again.
    - Turn **Start right away** on: **the button reads Start and every row gets a green play
      button?** Tap 15:00: **it counts at once, with Pause showing?** Tap ✕ → End, and turn the switch
      off again.

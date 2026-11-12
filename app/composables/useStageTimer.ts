@@ -2,7 +2,7 @@ import { computed, ref, shallowRef, watch } from 'vue'
 import { MINUTE, phase as phaseOf, select as selectCore, start, step as stepCore, toggle as toggleCore, clear, type TimerState } from '#shared/timer/core'
 import { display as displayOf } from '#shared/timer/display'
 import { createTicker } from '#shared/timer/ticker'
-import { createLocalStore, type KeyValue, type StepMinutes } from '#shared/storage/store'
+import { createLocalStore, withDefaults, withPreset, withoutPreset, type KeyValue, type Preset, type StepMinutes } from '#shared/storage/store'
 import { useDebugLog } from './useDebugLog'
 import { useWakeLock } from './useWakeLock'
 
@@ -30,6 +30,15 @@ function create() {
   const store = createLocalStore(safeLocalStorage())
   const state = shallowRef<TimerState>(store.loadTimer())
   const prefs = ref(store.loadPrefs())
+  const presets = shallowRef<readonly Preset[]>(store.loadPresets())
+  /** The preset the wheel added last, so the list can point it out once. */
+  let lastAdded: string | null = null
+  function storePresets(next: readonly Preset[], action: string) {
+    presets.value = next
+    store.savePresets(next)
+    storageError.value = store.lastError()
+    log('presets', action)
+  }
   const now = ref(Date.now())
   /** Increments each time the timer crosses into overtime while on screen (drives the shake). */
   const zeroCrossings = ref(0)
@@ -67,7 +76,7 @@ function create() {
   if (state.value.status !== 'idle') wakeLock.want(true, 'restored timer')
 
   return {
-    state, prefs, now, display, phase, zeroCrossings, storageError,
+    state, prefs, presets, now, display, phase, zeroCrossings, storageError,
     store,
     wakeLock,
     /**
@@ -100,6 +109,24 @@ function create() {
       prefs.value = { ...prefs.value, wheelMs: ms }
       store.savePrefs(prefs.value)
       log('prefs', `wheel ${Math.round(ms / 1000)} s`)
+    },
+    /** A length set with the wheel joins the presets (one per length, sorted), as iOS fills Recents. */
+    addPreset(ms: number) {
+      const r = withPreset(presets.value, ms)
+      if (!r.added) return
+      lastAdded = r.added.id
+      storePresets(r.list, `add ${Math.round(ms / 1000)} s`)
+    },
+    deletePreset(id: string) {
+      storePresets(withoutPreset(presets.value, id), `delete ${id}`)
+    },
+    restorePresets() {
+      storePresets(withDefaults(presets.value), 'restore defaults')
+    },
+    takeLastAdded() {
+      const id = lastAdded
+      lastAdded = null
+      return id
     },
     setStartOnTap(on: boolean) {
       prefs.value = { ...prefs.value, startOnTap: on }

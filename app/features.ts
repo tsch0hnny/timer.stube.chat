@@ -4,11 +4,13 @@
  * surviving reload and lock.
  */
 export const FEATURES = {
-  /** 1st to cut: the countdown wheel (any length) → the 12 presets only. */
+  /** 1st to cut: swipe to delete, automatic adding, restore → the 12 default presets, fixed. */
+  editablePresets: true,
+  /** 2nd to cut: the countdown wheel (any length) → the 12 presets only. */
   wheel: true,
-  /** 2nd to cut: hold-to-pick step strip → fixed ±1 and ±5 buttons. */
+  /** 3rd to cut: hold-to-pick step strip → fixed ±1 and ±5 buttons. */
   stepPicker: true,
-  /** 3rd to cut: the shake at zero (the red and the minus sign stay). */
+  /** 4th to cut: the shake at zero (the red and the minus sign stay). */
   shake: true,
 } as const
 

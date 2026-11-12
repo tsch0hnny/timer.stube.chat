@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { PhArrowCounterClockwise, PhCaretRight, PhPlay } from '@phosphor-icons/vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { PhArrowCounterClockwise } from '@phosphor-icons/vue'
 import { MINUTE, select as selectCore } from '#shared/timer/core'
+import { BUILT_IN_PRESETS, missingDefaults } from '#shared/storage/store'
 import { display as displayOf } from '#shared/timer/display'
 import { FEATURES } from '~/features'
 import { useStageTimer } from '~/composables/useStageTimer'
@@ -17,25 +18,61 @@ const startOnTap = computed(() => timer.prefs.value.startOnTap)
 const wheelMs = ref(timer.prefs.value.wheelMs) // opens on the last length set with it
 function setFromWheel() {
   timer.setWheel(wheelMs.value)
+  if (FEATURES.editablePresets) timer.addPreset(wheelMs.value) // as iOS fills Recents
   timer.select(wheelMs.value)
 }
 
-/** Apple's words for a length: "15 min", "1 hr", "1 hr, 15 min". */
+/** Apple's words for a length: "15 secs", "12 min", "42 min, 15 secs", "1 hr, 20 min". */
 function words(ms: number) {
-  const m = Math.round(ms / MINUTE)
-  const h = Math.floor(m / 60)
-  if (h === 0) return `${m} min`
-  return m % 60 ? `${h} hr, ${m % 60} min` : `${h} hr`
+  const total = Math.round(ms / 1000)
+  const h = Math.floor(total / 3600)
+  const m = Math.floor(total / 60) % 60
+  const sec = total % 60
+  return [h && `${h} hr`, m && `${m} min`, sec && `${sec} ${sec === 1 ? 'sec' : 'secs'}`].filter(Boolean).join(', ')
 }
+const presets = computed(() => (FEATURES.editablePresets ? timer.presets.value : BUILT_IN_PRESETS))
 // Each row shows the time exactly as the timer view will (same formatter), then the words.
 const rows = computed(() =>
-  timer.store.loadPresets().map((p) => ({ ...p, text: displayOf(selectCore(p.durationMs), 0)!.text, words: words(p.durationMs) })),
+  presets.value.map((p) => ({ ...p, testId: String(p.durationMs / MINUTE), text: displayOf(selectCore(p.durationMs), 0)!.text, words: words(p.durationMs) })),
 )
+const canRestore = computed(() => FEATURES.editablePresets && missingDefaults(presets.value))
+
+// Swipe to delete: one open row at a time. A tap or a scroll anywhere closes it, and that tap does
+// nothing else (iOS); a tap on a row while another is open must not open a timer.
+const openId = ref<string | null>(null)
+let swallowSelect = false
+function onOpen(id: string, open: boolean) {
+  if (open) openId.value = id
+  else if (openId.value === id) openId.value = null
+}
+function closeOnOutside(e: PointerEvent) {
+  swallowSelect = false // every touch starts fresh
+  if (!openId.value) return
+  const rowEl = (e.target as HTMLElement).closest('[data-row]')
+  if (rowEl?.getAttribute('data-row') === openId.value) return
+  openId.value = null
+  swallowSelect = true // this touch only closes the row
+}
+// Whatever that touch ends on, its click is over once it bubbles here: the next one counts again.
+const endSwallow = () => { swallowSelect = false }
+onMounted(() => window.addEventListener('click', endSwallow))
+onBeforeUnmount(() => window.removeEventListener('click', endSwallow))
+function onSelect(ms: number) {
+  if (swallowSelect) { swallowSelect = false; return }
+  timer.select(ms)
+}
+function onDelete(id: string) {
+  if (openId.value === id) openId.value = null
+  timer.deletePreset(id)
+}
+// A length the wheel just added lights up once when the list comes back.
+const fresh = ref<string | null>(null)
+onMounted(() => { fresh.value = timer.takeLastAdded() })
 const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 </script>
 
 <template>
-  <section class="presets" data-testid="presets">
+  <section class="presets" data-testid="presets" @pointerdown.capture="closeOnOutside" @scroll.passive="openId = null">
     <StatusPills :wake-lock-matters="false" />
 
     <div class="setter">
@@ -85,25 +122,29 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 
     <div class="listcol">
       <h2 class="heading">Presets</h2>
-      <ul class="list" :class="{ on: startOnTap }" role="list">
-        <li v-for="(r, i) in rows" :key="r.id" :style="{ '--i': i }">
-          <button
-            type="button"
-            class="preset"
-            :aria-label="`${startOnTap ? 'Start' : 'Open'} a ${r.words} timer`"
-            :data-testid="`preset-${r.durationMs / MINUTE}`"
-            @click="timer.select(r.durationMs)"
-          >
-            <span class="time">{{ r.text }}</span>
-            <span class="words">{{ r.words }}</span>
-            <!-- One slot for both, so they share a centre; the switch cross-fades them. -->
-            <span class="slot" aria-hidden="true">
-              <PhCaretRight class="chevron" :size="18" weight="bold" />
-              <span class="go"><PhPlay :size="18" weight="fill" /></span>
-            </span>
-          </button>
-        </li>
+      <ul class="list" role="list">
+        <PresetRow
+          v-for="(r, i) in rows"
+          :key="r.id"
+          :data-row="r.id"
+          :test-id="r.testId"
+          :text="r.text"
+          :words="r.words"
+          :start-on-tap="startOnTap"
+          :open="openId === r.id"
+          :swipe="FEATURES.editablePresets"
+          :fresh="fresh === r.id"
+          :index="i"
+          @open="(o) => onOpen(r.id, o)"
+          @select="onSelect(r.durationMs)"
+          @delete="onDelete(r.id)"
+        />
       </ul>
+      <p v-if="!rows.length" class="empty" data-testid="presets-empty">No presets. Lengths you set with the wheel appear here.</p>
+      <button v-if="canRestore" type="button" class="restore" data-testid="restore-presets" @click="timer.restorePresets()">
+        <PhArrowCounterClockwise :size="20" weight="bold" aria-hidden="true" />
+        Restore Default Presets
+      </button>
       <footer class="foot">
         <button v-if="pwa?.needRefresh" type="button" class="update" data-testid="update" @click="pwa.updateServiceWorker(true)">
           Update ready · reload
@@ -208,76 +249,29 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   font: 700 1.375rem / 1.2 system-ui, -apple-system, sans-serif;
 }
 .list { margin: 0 calc(-1 * var(--gutter)); padding: 0; list-style: none; }
-/* Apple's Recents row: big light time, the words below, the action at the right. */
-.preset {
-  position: relative;
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr auto;
+/* The rows themselves live in PresetRow.vue. */
+.empty {
+  margin: 1rem 0 0;
+  font: 400 0.9375rem / 1.4 system-ui, -apple-system, sans-serif;
+  color: var(--dim);
+}
+/* An iOS action row: plain text and a glyph, full width, no fill until pressed. */
+.restore {
+  display: flex;
   align-items: center;
-  column-gap: 1rem;
-  padding: 0.6rem var(--gutter);
+  gap: 0.6rem;
+  width: calc(100% + 2 * var(--gutter));
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 0.95rem var(--gutter);
   border: 0;
   background: none;
   color: #fff;
+  font: 400 1.0625rem / 1.2 system-ui, -apple-system, sans-serif;
   text-align: left;
   touch-action: manipulation;
   transition: background-color 120ms ease-out;
 }
-.preset::after { /* separator, inset to the text like iOS */
-  content: '';
-  position: absolute;
-  left: var(--gutter);
-  right: 0;
-  bottom: 0;
-  height: 0.5px;
-  background: var(--separator);
-}
-.preset:active { background: var(--tile); }
-.time {
-  grid-column: 1;
-  font: 300 2.5rem / 1.08 system-ui, -apple-system, sans-serif;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1, 'case' 1; /* colons on the figures' centre, as in Clock */
-  letter-spacing: -0.01em;
-}
-.words {
-  grid-column: 1;
-  font: 400 0.9375rem / 1.3 system-ui, -apple-system, sans-serif;
-  color: var(--dim);
-}
-.slot {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  position: relative;
-  width: 2.5rem;
-  height: 2.5rem;
-}
-/* Chevron and play disc swap in place, the same both ways, as iOS replaces a symbol: the old one
-   shrinks and fades while the new one grows in, rippling down the list (each row 18 ms later). */
-.slot > * {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  transition: opacity 180ms ease-out, transform 280ms cubic-bezier(0.3, 0.7, 0.4, 1);
-  transition-delay: calc(var(--i, 0) * 18ms);
-}
-.chevron { color: var(--chevron); }
-.go {
-  width: 2.5rem;
-  height: 2.5rem;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--go-fill);
-  color: var(--go);
-  opacity: 0;
-  transform: scale(0.4);
-}
-.go :deep(svg) { transform: translateX(1px); }
-.chevron { transform: scale(1); }
-.list.on .chevron { opacity: 0; transform: scale(0.4); }
-.list.on .go { opacity: 1; transform: none; }
+.restore:active { background: var(--tile); }
 
 .foot {
   display: flex;
@@ -322,8 +316,6 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .knob, .track, .preset { transition: none; }
-  .slot > * { transition: opacity 150ms linear; transition-delay: 0ms; }
-  .list.on .chevron, .go, .list.on .go { transform: none; }
+  .knob, .track, .restore { transition: none; }
 }
 </style>

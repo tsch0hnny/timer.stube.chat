@@ -163,3 +163,105 @@ test('no double-tap zoom and no text selection, except in the debug sheet', asyn
   await page.getByTestId('debug-version').dblclick({ position: { x: 12, y: 8 } }) // on the text, not the empty end of the row
   expect(await selected()).not.toBe('') // the report stays selectable
 })
+
+/** Drags a preset row sideways by dx (negative = left), as a finger would. */
+async function swipe(page: Page, testId: string, dx: number) {
+  await page.getByTestId(`preset-${testId}`).scrollIntoViewIfNeeded()
+  const b = (await page.getByTestId(`preset-${testId}`).boundingBox())!
+  const x = b.x + b.width - 40
+  const y = b.y + b.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x + dx, y, { steps: 10 })
+  await page.mouse.up()
+}
+const offsetOf = (page: Page, testId: string) =>
+  page.getByTestId(`preset-${testId}`).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41)
+
+test('swipe left reveals Delete; deleting survives a reload; Restore brings the defaults back', async ({ page }) => {
+  await openApp(page)
+  await expect(page.getByTestId('restore-presets')).toHaveCount(0) // nothing missing yet
+  await swipe(page, '30', -70)
+  await expect.poll(() => offsetOf(page, '30')).toBe(-88) // snapped open
+  await page.getByTestId('delete-30').locator('.delete-label').click()
+  await expect(page.getByTestId('preset-30')).toHaveCount(0)
+  await expect(page.getByTestId('presets')).toBeVisible() // no timer opened
+  await page.reload()
+  await expect(page.getByTestId('preset-15')).toBeVisible()
+  await expect(page.getByTestId('preset-30')).toHaveCount(0)
+  await page.getByTestId('restore-presets').click()
+  await expect(page.getByTestId('preset-30')).toBeVisible()
+  await expect(page.getByTestId('restore-presets')).toHaveCount(0)
+})
+
+test('a full swipe deletes on release; a short one snaps back', async ({ page }) => {
+  await openApp(page)
+  await swipe(page, '45', -30)
+  await expect.poll(() => offsetOf(page, '45')).toBe(0)
+  const w = (await page.getByTestId('preset-45').boundingBox())!.width
+  await swipe(page, '45', -w * 0.75)
+  await expect(page.getByTestId('preset-45')).toHaveCount(0)
+  await expect(page.locator('[data-testid^="preset-"]')).toHaveCount(11)
+})
+
+test('with a row open, a tap only closes it: on that row, on another row, or anywhere else', async ({ page }) => {
+  await openApp(page)
+  // The end of the list, so both rows are on screen without scrolling (a scroll closes rows too).
+  await page.getByTestId('presets').evaluate((el) => { el.scrollTop = el.scrollHeight })
+  await swipe(page, '150', -100)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await page.getByTestId('preset-150').click({ position: { x: 150, y: 20 } }) // on the shifted row
+  await expect.poll(() => offsetOf(page, '150')).toBe(0)
+  await expect(page.getByTestId('timer-view')).toHaveCount(0)
+  await swipe(page, '150', -100)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await page.getByTestId('preset-165').click()
+  await expect.poll(() => offsetOf(page, '150')).toBe(0)
+  await expect(page.getByTestId('timer-view')).toHaveCount(0) // that tap opened nothing
+  await swipe(page, '150', -100)
+  await expect.poll(() => offsetOf(page, '150')).toBe(-88)
+  await page.getByTestId('version').click() // anywhere else
+  await expect.poll(() => offsetOf(page, '150')).toBe(0)
+  await page.getByTestId('preset-165').click() // now a tap opens the timer again
+  await expect(page.getByTestId('timer-view')).toBeVisible()
+})
+
+test('a focused preset can be deleted from the keyboard', async ({ page }) => {
+  await openApp(page)
+  await page.getByTestId('preset-90').focus()
+  await page.keyboard.press('Delete')
+  await expect(page.getByTestId('preset-90')).toHaveCount(0)
+})
+
+test('a length set with the wheel joins the presets, sorted, once, and lights up', async ({ page }) => {
+  await openApp(page)
+  await roll(page, 'hours', 1)
+  await roll(page, 'minutes', 7)
+  await roll(page, 'seconds', 30)
+  await page.getByTestId('wheel-set').click()
+  await expect(page.getByTestId('timer-view')).toBeVisible()
+  await page.getByTestId('exit').click()
+  const row = page.getByTestId('preset-67.5')
+  await expect(row.locator('.time')).toHaveText('1:07:30')
+  await expect(row.locator('.words')).toHaveText('1 hr, 7 min, 30 secs')
+  await expect(page.locator('li.fresh')).toHaveCount(1)
+  const order = await page.locator('[data-testid^="preset-"]').evaluateAll((els) => els.map((e) => e.getAttribute('data-testid')))
+  expect(order.indexOf('preset-67.5')).toBe(order.indexOf('preset-60') + 1) // between 1:00:00 and 1:15:00
+  await page.getByTestId('wheel-set').click() // the same length again
+  await page.getByTestId('exit').click()
+  await expect(page.getByTestId('preset-67.5')).toHaveCount(1)
+  await roll(page, 'hours', 0)
+  await roll(page, 'minutes', 15)
+  await roll(page, 'seconds', 0)
+  await page.getByTestId('wheel-set').click() // a default length: nothing new
+  await page.getByTestId('exit').click()
+  await expect(page.locator('[data-testid^="preset-"]')).toHaveCount(13)
+})
+
+test('with every preset deleted, the list says how to get them back', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('timer.v1.presets', JSON.stringify({ v: 1, presets: [] })))
+  await openApp(page)
+  await expect(page.getByTestId('presets-empty')).toBeVisible()
+  await page.getByTestId('restore-presets').click()
+  await expect(page.locator('[data-testid^="preset-"]')).toHaveCount(12)
+})

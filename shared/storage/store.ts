@@ -7,7 +7,9 @@ import { MAX_ABS_MS, MINUTE, idle, type TimerState } from '../timer/core'
 export interface AppStore {
   loadTimer(): TimerState
   saveTimer(s: TimerState): void
+  /** The saved presets, sorted by length; the 12 defaults until anything is changed. */
   loadPresets(): readonly Preset[]
+  savePresets(list: readonly Preset[]): void
   loadPrefs(): Prefs
   savePrefs(p: Prefs): void
   /** The stored timer envelope as written, for the debug overlay. */
@@ -44,10 +46,38 @@ export const BUILT_IN_PRESETS: readonly Preset[] = Object.freeze(
 )
 
 const VERSION = 1
-export const KEYS = { timer: 'timer.v1.state', prefs: 'timer.v1.prefs' } as const
+export const KEYS = { timer: 'timer.v1.state', prefs: 'timer.v1.prefs', presets: 'timer.v1.presets' } as const
 
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x)
-const okWheel = (x: unknown): x is number => finite(x) && Number.isInteger(x / 1000) && x >= 1000 && x <= MAX_ABS_MS
+/** A length the timer can be set to: whole seconds, 1 s to 9:59:59. */
+const okLength = (x: unknown): x is number => finite(x) && Number.isInteger(x / 1000) && x >= 1000 && x <= MAX_ABS_MS
+const byLength = (a: Preset, b: Preset) => a.durationMs - b.durationMs
+
+/** Valid entries only, one per length, sorted by length; null when it is not a list at all. */
+function parsePresets(list: unknown): Preset[] | null {
+  if (!Array.isArray(list)) return null
+  const seen = new Set<number>()
+  const out: Preset[] = []
+  for (const p of list) {
+    if (!p || typeof p !== 'object') continue
+    const { id, durationMs, builtIn } = p as Record<string, unknown>
+    if (typeof id !== 'string' || !okLength(durationMs) || seen.has(durationMs)) continue
+    seen.add(durationMs)
+    out.push({ id, durationMs, builtIn: builtIn === true })
+  }
+  return out.sort(byLength)
+}
+/** Adds a length unless it is already there (a default length gets its default identity back). */
+export function withPreset(list: readonly Preset[], durationMs: number): { list: readonly Preset[]; added: Preset | null } {
+  if (!okLength(durationMs) || list.some((p) => p.durationMs === durationMs)) return { list, added: null }
+  const added = BUILT_IN_PRESETS.find((p) => p.durationMs === durationMs) ?? { id: `custom-${durationMs}`, durationMs, builtIn: false }
+  return { list: [...list, added].sort(byLength), added }
+}
+export const withoutPreset = (list: readonly Preset[], id: string): readonly Preset[] => list.filter((p) => p.id !== id)
+export const missingDefaults = (list: readonly Preset[]) => BUILT_IN_PRESETS.some((b) => !list.some((p) => p.durationMs === b.durationMs))
+/** Brings back every missing default; lengths the player added stay. */
+export const withDefaults = (list: readonly Preset[]): readonly Preset[] =>
+  BUILT_IN_PRESETS.reduce((acc, b) => withPreset(acc, b.durationMs).list, list)
 
 /** Validates a stored timer. Returns the state, or an error string. */
 export function parseTimer(raw: string): TimerState | string {
@@ -99,7 +129,18 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
       write(KEYS.timer, JSON.stringify({ v: VERSION, savedAt: now(), state: s }), 'timer')
     },
     loadPresets() {
+      const raw = read(KEYS.presets)
+      if (raw === null) return BUILT_IN_PRESETS
+      // Unreadable presets fall back to the defaults quietly: the warning pill is about the timer.
+      try {
+        const o = JSON.parse(raw) as { v?: unknown; presets?: unknown }
+        const list = o?.v === VERSION ? parsePresets(o.presets) : null
+        if (list) return list
+      } catch { /* fall through */ }
       return BUILT_IN_PRESETS
+    },
+    savePresets(list) {
+      write(KEYS.presets, JSON.stringify({ v: VERSION, presets: list }), 'presets')
     },
     loadPrefs() {
       const raw = read(KEYS.prefs)
@@ -112,7 +153,7 @@ export function createLocalStore(kv: KeyValue | null, opts: { now?: () => number
           return {
             stepMinutes: (STEP_CHOICES as readonly unknown[]).includes(step) ? (step as StepMinutes) : DEFAULT_PREFS.stepMinutes,
             startOnTap: o.prefs?.startOnTap === true,
-            wheelMs: okWheel(o.prefs?.wheelMs) ? o.prefs.wheelMs : DEFAULT_PREFS.wheelMs,
+            wheelMs: okLength(o.prefs?.wheelMs) ? o.prefs.wheelMs : DEFAULT_PREFS.wheelMs,
           }
         }
       } catch { /* fall through */ }

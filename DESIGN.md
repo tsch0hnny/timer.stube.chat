@@ -264,7 +264,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 ### Secondary
 - **Overtime Red** (overtime-red): the stage digits once the countdown passes zero, and nothing else.
 - **Caution Amber** (caution-amber, black text on it): the status pill that says the app needs a tap (wake lock lost, storage unavailable). Deliberately not red, so it cannot be misread as overtime.
-- **End Red** (end-red, white text on it): the End button in the exit confirm, and nothing else.
+- **End Red** (end-red, white text on it): destructive actions only: the End button in the exit confirm and the Delete behind a swiped preset.
 
 ### Neutral
 - **Stage Black** (stage-black): every background, the status-bar strip, the gap inside the button ring.
@@ -279,7 +279,7 @@ A black-and-white stage with four signal colours, each owning exactly one meanin
 - **Menu Highlight** (menu-highlight): the step choice under the finger. **Label Disabled** (label-disabled): a disabled round button's label.
 
 ### Named Rules
-**The One Meaning Rule.** Green is start, red is overtime, amber is "needs a tap", deep red is End. No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.
+**The One Meaning Rule.** Green is start, red is overtime, amber is "needs a tap", deep red is destructive (End, Delete). No colour is borrowed for decoration or emphasis, and no new hue joins without a new meaning.
 
 **The No Orange Rule.** Apple's orange Pause is not used. Pause is grey, like every other non-start control.
 
@@ -349,7 +349,7 @@ Apple's round timer button, tactile and plain.
 - **Start:** start-green-fill with start-green label. On the stage it is Start until running, then becomes grey Pause; the label cross-fades (100ms).
 - **Pressed:** brightness 1.45 over 120ms. **Disabled:** label dims only (white at 32%, green at 38%); the fill stays.
 - **Focus:** a 3px white outline, 3px offset, everywhere.
-- **End:** a capsule in end-red, white text, inside the exit confirm only.
+- **End:** a capsule in end-red, white text, inside the exit confirm only (the swiped Delete is the only other end-red surface).
 
 ### Step Buttons and Step Menu
 - Round grey buttons labelled with the current step ("−5 min", "+5 min"). A tap steps; a hold opens the step menu above the button (the button scales to 1.06 while held).
@@ -360,7 +360,10 @@ Apple's round timer button, tactile and plain.
 - **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green, because turning it on makes taps start. Knob slides over 220ms.
 
 ### Preset List (Recents format)
-- Each row: a big light tabular time over grey words ("1 hr, 15 min"), with the action at the right: a grey chevron when tapping sets, a 2.5rem green play circle when tapping starts. Pressed rows take cell-grey. Hairline separators inset to the text.
+- Each row: a big light tabular time over grey words ("1 hr, 15 min", "42 min, 15 secs"), with the action at the right: a grey chevron when tapping sets, a 2.5rem green play circle when tapping starts. Both share one 2.5rem slot and swap in place (shrink and fade, grow in; each row 18ms after the one above). Pressed rows take cell-grey. Hairline separators inset to the text. One row per length, sorted by length.
+- **Swipe to delete (iOS):** the row follows a sideways drag (vertical drags stay native scrolling) and uncovers end-red with a white "Delete" in an 88px strip; released past half the strip it rests open, past 60% of the row it deletes: the row slides out (200ms) and collapses (240ms) while the rows below move up. On a full swipe the label rides the row's edge. One row open at a time; a tap or a scroll anywhere closes it and does nothing else. Keyboard: Delete on a focused row. Reduced motion: no sliding.
+- **Adding:** a length set with the wheel joins the list by itself, as iOS fills Recents, and its row lights up once (menu-grey fading to black over 1.6s) when the list returns.
+- **Restore Default Presets:** a plain full-width action row (white text, bold counter-clockwise arrow) under the list whenever any of the 12 defaults is missing; pressed takes cell-grey. With no presets at all, one dim line explains that wheel lengths appear here.
 
 ### Countdown Wheel
 - Three scroll-snapping columns (hours, min, sec), numbers ending just left of each column's centre with the unit beside them; a quiet-fill band (8px corners) across all three at the centre row; the drum fades to transparent at top and bottom and, where supported, curves with a scroll-linked rotateX. Reduced motion drops the curve. A focused column underlines its unit.

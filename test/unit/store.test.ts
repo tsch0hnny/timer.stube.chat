@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { HOUR, MAX_ABS_MS, MINUTE, SECOND, idle, select, start, pause, step, remainingMs, phase, type TimerState } from '../../shared/timer/core'
 import { display } from '../../shared/timer/display'
-import { createLocalStore, BUILT_IN_PRESETS, DEFAULT_PREFS, type KeyValue } from '../../shared/storage/store'
+import { createLocalStore, BUILT_IN_PRESETS, DEFAULT_PREFS, missingDefaults, withDefaults, withPreset, withoutPreset, type KeyValue } from '../../shared/storage/store'
 
 const T0 = Date.UTC(2026, 10, 14, 20, 0, 0)
 
@@ -132,5 +132,62 @@ describe('presets and prefs live behind the same interface', () => {
     kv.data.set('spike:log', '[]')
     createLocalStore(kv).saveTimer(select(MINUTE))
     expect([...kv.data.keys()].sort()).toEqual(['spike:log', 'timer.v1.state'])
+  })
+})
+
+describe('saved presets: delete, automatic adding, restore defaults', () => {
+  const mins = (list: readonly { durationMs: number }[]) => list.map((p) => p.durationMs / 1000 / 60)
+  it('starts with the 12 defaults and keeps whatever is saved, sorted by length', () => {
+    const kv = memoryKV()
+    expect(createLocalStore(kv).loadPresets()).toEqual(BUILT_IN_PRESETS)
+    let list = withoutPreset(BUILT_IN_PRESETS, 'builtin-45')
+    list = withPreset(list, HOUR + 7 * MINUTE + 30 * SECOND).list
+    list = withPreset(list, 4 * SECOND).list
+    createLocalStore(kv).savePresets(list)
+    const back = createLocalStore(kv).loadPresets()
+    expect(mins(back)).toEqual([4 / 60, 15, 30, 60, 67.5, 75, 90, 105, 120, 135, 150, 165, 180])
+    expect(back.find((p) => p.durationMs === 4 * SECOND)).toMatchObject({ builtIn: false })
+  })
+  it('one entry per length: adding a length that is there changes nothing', () => {
+    const r = withPreset(BUILT_IN_PRESETS, 15 * MINUTE)
+    expect(r.added).toBeNull()
+    expect(r.list).toBe(BUILT_IN_PRESETS)
+    expect(withPreset(BUILT_IN_PRESETS, 0).added).toBeNull()
+    expect(withPreset(BUILT_IN_PRESETS, 1500).added).toBeNull() // whole seconds only
+  })
+  it('a default length added back by hand gets its default identity again', () => {
+    const r = withPreset(withoutPreset(BUILT_IN_PRESETS, 'builtin-30'), 30 * MINUTE)
+    expect(r.added).toEqual(BUILT_IN_PRESETS[1])
+    expect(missingDefaults(r.list)).toBe(false)
+  })
+  it('restore brings back missing defaults and keeps added lengths', () => {
+    const list = withPreset(withoutPreset(withoutPreset(BUILT_IN_PRESETS, 'builtin-15'), 'builtin-180'), 20 * MINUTE).list
+    expect(missingDefaults(list)).toBe(true)
+    const restored = withDefaults(list)
+    expect(mins(restored)).toEqual([15, 20, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180])
+    expect(missingDefaults(restored)).toBe(false)
+  })
+  it('an empty list survives a reload (everything deleted)', () => {
+    const kv = memoryKV()
+    createLocalStore(kv).savePresets([])
+    expect(createLocalStore(kv).loadPresets()).toEqual([])
+  })
+  it('junk falls back to the defaults, entry by entry, without raising the storage warning', () => {
+    const kv = memoryKV()
+    kv.data.set('timer.v1.presets', 'not json')
+    const store = createLocalStore(kv)
+    expect(store.loadPresets()).toEqual(BUILT_IN_PRESETS)
+    expect(store.lastError()).toBeNull()
+    kv.data.set('timer.v1.presets', JSON.stringify({ v: 1, presets: [
+      { id: 'a', durationMs: 20 * MINUTE, builtIn: false },
+      { id: 'b', durationMs: 20 * MINUTE, builtIn: false }, // duplicate length
+      { id: 'c', durationMs: -5 }, { id: 7, durationMs: MINUTE }, null,
+      { id: 'd', durationMs: 10 * MINUTE, builtIn: true },
+    ] }))
+    expect(createLocalStore(kv).loadPresets()).toEqual([
+      { id: 'd', durationMs: 10 * MINUTE, builtIn: true }, { id: 'a', durationMs: 20 * MINUTE, builtIn: false },
+    ])
+    kv.data.set('timer.v1.presets', JSON.stringify({ v: 2, presets: [] }))
+    expect(createLocalStore(kv).loadPresets()).toEqual(BUILT_IN_PRESETS)
   })
 })
