@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { MIN, expectTime, inkMids, longPress, openPreset, turnToLandscape } from './helpers'
+import { MIN, digits, expectTime, inkMids, longPress, openPreset, turnToLandscape } from './helpers'
 
 type Box = { x: number; y: number; width: number; height: number }
 const round = (b: Box) => ({ x: Math.round(b.x * 100) / 100, y: Math.round(b.y * 100) / 100, w: Math.round(b.width * 100) / 100, h: Math.round(b.height * 100) / 100 })
@@ -152,6 +152,11 @@ test('the digits sit on the centre of the short axis, paused and running, clear 
 
 test('the colon and the minus sit on the digits\' centre line', async ({ page }) => {
   await openPreset(page, 15)
+  // Everywhere: the digits ask for the 'case' feature, which centres them in SF Pro.
+  expect(await digits(page).evaluate((el) => getComputedStyle(el).fontFeatureSettings)).toMatch(/"case"/)
+  // The pixel check needs SF Pro, which system-ui is only on Apple platforms (the iPhone, a Mac).
+  // CI runs on Linux, where system-ui is a font without the feature: there the colon stays low.
+  test.skip(process.platform !== 'darwin', 'system-ui is SF Pro only on Apple platforms')
   await turnToLandscape(page) // upright text for the pixel read
   const check = async () => {
     const cells = await inkMids(page)
