@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    name: Timer core (typecheck + Vitest)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json # reads the Volta pin (24.22.3)
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck:core
+      - run: npx vitest run
+
+  spike:
+    name: Spike container (Docker + headers + WebKit/Chromium)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+      - run: npm ci
+      - uses: docker/setup-buildx-action@v4
+      - name: Validate compose file
+        run: docker network create traefik_net && docker compose -f spike/compose.yaml config --quiet
+      - name: Build image (BuildKit, same Dockerfile as the VPS)
+        run: docker build -f spike/Dockerfile -t timer-stube-chat:spike --load .
+      - name: Run container and wait until it serves
+        run: |
+          docker run -d --name spike -p 8089:80 timer-stube-chat:spike
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8089/ping.txt >/dev/null && exit 0
+            sleep 1
+          done
+          docker logs spike; exit 1
+      - name: Cache and MIME headers
+        run: deploy/check-headers.sh http://127.0.0.1:8089
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Spike in WebKit (iPhone 13 Pro emulation) and Chromium (Pixel 7)
+        run: node spike/tools/check-spike.mjs http://127.0.0.1:8089/ spike-shots
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: spike-screenshots
+          path: spike-shots/
+          retention-days: 14

@@ -115,7 +115,7 @@
   <div id="land">
     <div id="safe">
       <div id="digits">60:00</div>
-      <div id="wlbig">SCREEN MAY SLEEP – wake lock off</div>
+      <div id="wlbig"></div>
       <div id="hud"></div>
       <div id="tools">
         <button data-rot="none">No rotation</button><button data-rot="cw">Rotate ↻</button><button data-rot="ccw">Rotate ↺</button><button data-rot="auto">Auto</button>
@@ -149,11 +149,14 @@ const hms = (t) => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d
 const dur = (ms) => { const s = Math.round(ms / 1000); return s >= 3600 ? `${Math.floor(s/3600)}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}` : `${Math.floor(s/60)}:${pad(s%60)}` }
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))
 
+// Lists every matching display-mode: iOS home screen apps reportedly match "fullscreen" but not
+// "standalone" (WebKit bug 264218), so the first match alone would be misleading.
 function displayMode() {
-  for (const m of ['fullscreen', 'standalone', 'minimal-ui', 'browser']) if (matchMedia(`(display-mode: ${m})`).matches) return m
-  return 'unknown'
+  const m = ['fullscreen', 'standalone', 'minimal-ui', 'browser'].filter((x) => matchMedia(`(display-mode: ${x})`).matches)
+  return m.join('+') || 'unknown'
 }
 const CTX = (displayMode() !== 'browser' || navigator.standalone === true) ? 'app' : 'tab'
+const WL_HINT = 'Screen may sleep · tap once to keep it on'
 
 const state = {
   loadedAt: now(),
@@ -203,6 +206,8 @@ function recordResult(kind, val) { state.wl.results[kind] = `${val} @${hms(now()
 async function requestWL(reason, kind) {
   if (!('wakeLock' in navigator)) { recordResult(kind, 'unsupported'); log('wl-unsupported', reason); render(); return }
   if (state.wl.sentinel && !state.wl.sentinel.released) { log('wl-skip', `${reason}: already held`); return }
+  if (state.wl.pending) return // one tap fires pointerup + touchend + click: request once
+  state.wl.pending = true
   try {
     const s = await navigator.wakeLock.request('screen')
     state.wl.sentinel = s; state.wl.acquiredAt = now(); state.wl.acquired++; state.wl.lastError = null
@@ -219,6 +224,8 @@ async function requestWL(reason, kind) {
     state.wl.lastError = `${e.name}: ${e.message}`
     recordResult(kind, e.name)
     log('wl-error', `${reason}: ${e.name}: ${e.message}`)
+  } finally {
+    state.wl.pending = false
   }
   render()
 }
@@ -244,12 +251,17 @@ document.addEventListener('freeze', () => log('freeze'))
 document.addEventListener('resume', () => log('resume'))
 addEventListener('online', () => log('online', ''))
 addEventListener('offline', () => log('offline', ''))
-const touched = () => {
-  state.lastTouch = now()
-  if (state.wantWL && !wlHeld() && document.visibilityState === 'visible') requestWL('first tap after lock was missing', 'onTap')
-}
+// Any touch resets the "untouched" stopwatch.
+const touched = () => { state.lastTouch = now() }
 addEventListener('pointerdown', touched, { capture: true })
 addEventListener('keydown', touched, { capture: true })
+// WebKit only grants the first wake lock inside a user activation, and for touch input
+// pointerdown is NOT an activation-triggering event (pointerup / touchend / click are).
+const activated = (e) => {
+  state.lastTouch = now()
+  if (state.wantWL && !wlHeld() && document.visibilityState === 'visible') requestWL(`tap (${e.type}) while lock was missing`, 'onTap')
+}
+for (const t of ['pointerup', 'touchend', 'click']) addEventListener(t, activated, { capture: true })
 
 /* ---------- heartbeat: detects when the page was frozen (screen off) ---------- */
 function beat() { state.lastBeat = now(); LS.set('lastBeat', { t: state.lastBeat, ctx: CTX, vis: document.visibilityState }) }
@@ -280,6 +292,9 @@ function vp() {
     visualViewport: window.visualViewport ? `${Math.round(visualViewport.width)}×${Math.round(visualViewport.height)} scale ${visualViewport.scale}` : 'n/a',
     clientWH: `${document.documentElement.clientWidth}×${document.documentElement.clientHeight}`,
     screen: `${screen.width}×${screen.height} dpr ${devicePixelRatio}`,
+    // In portrait, screen.height − innerHeight is space the page cannot draw into (status bar band,
+    // Safari toolbars). WebKit bug 301994: env(safe-area-inset-top) may read 0 in iOS 27 home screen apps.
+    'screen.h − inner.h': `${screen.height - innerHeight} px · visualViewport.offsetTop ${window.visualViewport ? Math.round(visualViewport.offsetTop) : 'n/a'}`,
     'vh/dvh/svh/lvh': ['p-vh', 'p-dvh', 'p-svh', 'p-lvh'].map((id) => $(id).offsetHeight).join(' / '),
     'safe t/r/b/l': [ps.paddingTop, ps.paddingRight, ps.paddingBottom, ps.paddingLeft].map((x) => parseFloat(x)).join(' / '),
     orientation: `${so ? so.type + ' ' + so.angle + '°' : 'no screen.orientation'} · mq=${matchMedia('(orientation: portrait)').matches ? 'portrait' : 'landscape'} · window.orientation=${window.orientation ?? 'n/a'}`,
@@ -427,6 +442,7 @@ function renderStage() {
   d.classList.toggle('over', ms < 0)
   const held = wlHeld()
   $('wlbig').classList.toggle('show', !held)
+  $('wlbig').textContent = WL_HINT
   $('hud').innerHTML = `<b class="${held ? 'ok' : 'bad'}">wake lock ${held ? 'ON' : 'OFF'}</b>` +
     `<span>untouched ${dur(untouchedNow())} (max ${dur(state.maxUntouched.s * 1000)})</span>` +
     `<span>${CTX} · rot ${state.rot}${state.rot === 'auto' ? '→' + stage.dataset.rot : ''}</span>` +
