@@ -47,8 +47,11 @@ const minutesLabel = (ms: number) => {
 
 <style scoped>
 .presets {
-  position: fixed;
-  inset: 0;
+  position: fixed; /* full height on iOS standalone: see .stage in TimerView.vue */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   padding:

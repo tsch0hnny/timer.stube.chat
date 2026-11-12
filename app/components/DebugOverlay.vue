@@ -13,6 +13,7 @@ const pwa = useNuxtApp().$pwa
 const visibility = ref(document.visibilityState)
 const sw = ref<{ controlled: boolean; state: string; scope: string }>({ controlled: false, state: '?', scope: '?' })
 const insets = ref('')
+const stage = ref('')
 const copied = ref('')
 const probe = ref<HTMLElement | null>(null)
 
@@ -50,6 +51,10 @@ async function refresh() {
     const p = getComputedStyle(probe.value)
     insets.value = [p.paddingTop, p.paddingRight, p.paddingBottom, p.paddingLeft].map((x) => parseFloat(x)).join(' / ')
   }
+  // Should equal the viewport (the screen, in the home-screen app); see .stage in TimerView.vue.
+  const r = document.querySelector('[data-testid="timer-view"], [data-testid="presets"]')?.getBoundingClientRect()
+  const de = document.documentElement
+  stage.value = r ? `${Math.round(r.width)}×${Math.round(r.height)} at ${Math.round(r.left)},${Math.round(r.top)} · layout viewport ${de.clientWidth}×${de.clientHeight}` : '–'
 }
 let interval: ReturnType<typeof setInterval> | undefined
 onMounted(() => { void refresh(); interval = setInterval(refresh, 1000); document.addEventListener('visibilitychange', refresh) })
@@ -63,6 +68,7 @@ const rows = computed((): Array<[string, string]> => [
   ['visibility', visibility.value],
   ['display-mode', `${displayMode()} · standalone=${String((navigator as Navigator & { standalone?: boolean }).standalone)}`],
   ['viewport', `${innerWidth}×${innerHeight} · screen ${screen.width}×${screen.height} · safe t/r/b/l ${insets.value}`],
+  ['stage', stage.value],
   ['service worker', `${sw.value.state} · controlled=${sw.value.controlled} · update ready=${!!pwa?.needRefresh}`],
   ['online', String(navigator.onLine)],
   ['storage', timer.storageError.value ?? 'ok'],

@@ -199,8 +199,14 @@ const display = timer.display
 
 <style scoped>
 .stage {
+  /* Not inset: 0. In the iOS home-screen app a fixed inset: 0 box is only 797 px tall on a
+     844 px screen (measured on the iPhone 13 Pro): 47 px short at the home-bar end. 100dvh is
+     the full screen there and the visible area in a Safari tab. */
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
   background: var(--bg);
   container-type: size;
   overflow: hidden;
@@ -227,6 +233,11 @@ const display = timer.display
   transform: translateY(100cqh) rotate(-90deg);
   padding: env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom);
 }
+/* iOS dims a band along the notch edge in the home-screen app, about 85 px deep: 38 px past the
+   safe area (measured on the iPhone 13 Pro). The digits clear it; the corner controls on that
+   side move further in. */
+.stage[data-rot='cw'] { --notch-left: 2.5rem; }
+.stage[data-rot='ccw'] { --notch-right: 2.5rem; }
 .safe {
   --play-size: 5rem;
   --step-size: 3.75rem;
@@ -270,7 +281,7 @@ const display = timer.display
 }
 .play { width: var(--play-size); height: var(--play-size); }
 .play-icon { transform: translateX(3px); }
-.exit { position: absolute; top: 0.75rem; left: 0.75rem; display: flex; align-items: center; gap: 0.6rem; }
+.exit { position: absolute; top: 0.75rem; left: calc(0.75rem + var(--notch-left, 0px)); display: flex; align-items: center; gap: 0.6rem; }
 .exit-btn { width: 3.25rem; height: 3.25rem; }
 .confirm {
   display: flex;
@@ -290,7 +301,7 @@ const display = timer.display
 }
 .version {
   position: absolute;
-  right: 0.75rem;
+  right: calc(0.75rem + var(--notch-right, 0px));
   bottom: 0.5rem;
   padding: 0.5rem;
   border: 0;

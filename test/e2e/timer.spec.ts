@@ -163,6 +163,8 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
     await expect(page.getByTestId('debug')).toBeVisible()
     await expect(page.getByTestId('debug-stored')).toContainText(`endAt ${new Date(START.getTime() + 15 * MIN).toISOString()}`)
     await expect(page.getByTestId('debug-wake-lock')).toContainText('held')
+    const vp = page.viewportSize()!
+    await expect(page.getByTestId('debug-stage')).toContainText(`${vp.width}×${vp.height} at 0,0`) // the stage fills the screen
     await page.getByTestId('debug-close').click()
     await expect(page.getByTestId('debug')).toHaveCount(0)
   })
