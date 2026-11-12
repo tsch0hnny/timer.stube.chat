@@ -293,3 +293,22 @@ test('the delete circle grows and brightens with the finger, stretches, and arms
   await page.mouse.up()
   await expect(row).toHaveCount(0)
 })
+
+test('a swipe never sticks halfway, even when the browser takes the touch away mid-swipe', async ({ page }) => {
+  await openApp(page)
+  const row = page.getByTestId('preset-30')
+  await row.scrollIntoViewIfNeeded()
+  const b = (await row.boundingBox())!
+  const y = b.y + b.height / 2
+  const x = b.x + b.width - 40
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x - 30, y, { steps: 5 })
+  // iOS can cancel a touch's capture during fast, overlapping gestures without a pointerup.
+  await row.evaluate((el) => el.dispatchEvent(new PointerEvent('lostpointercapture', { bubbles: true, pointerId: 1 })))
+  await expect.poll(() => offsetOf(page, '30')).toBe(0) // settled closed (30 px is short of half the circle's strip), not stuck at −30
+  await expect(row).not.toHaveClass(/dragging/)
+  await page.mouse.up()
+  await swipe(page, '30', -100) // and it still swipes normally afterwards
+  await expect.poll(() => offsetOf(page, '30')).toBe(-72)
+})

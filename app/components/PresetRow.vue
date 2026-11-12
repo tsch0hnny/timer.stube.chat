@@ -35,7 +35,8 @@ const width = ref(390)
 const removing = ref(false)
 let start: { x: number; y: number; base: number; id: number } | null = null
 let sideways: boolean | null = null
-let swallowClick = false
+/** The current gesture went sideways: its click (if any) must not open a timer. Reset per touch. */
+let swiped = false
 
 const offset = computed(() => drag.value ?? (props.open ? -ACTION : 0))
 const armed = computed(() => -offset.value > width.value * FULL || removing.value)
@@ -54,6 +55,8 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 function onDown(e: PointerEvent) {
   if (!props.swipe || removing.value || (e.pointerType === 'mouse' && e.button !== 0)) return
+  if (drag.value !== null) settle() // a swipe the browser never finished: put it to rest first
+  swiped = false
   start = { x: e.clientX, y: e.clientY, base: props.open ? -ACTION : 0, id: e.pointerId }
   sideways = null
   width.value = row.value?.clientWidth ?? width.value
@@ -66,6 +69,7 @@ function onMove(e: PointerEvent) {
     if (Math.hypot(dx, dy) < 8) return
     sideways = Math.abs(dx) > Math.abs(dy)
     if (!sideways) { start = null; return } // a scroll: the browser's
+    swiped = true
     fg.value?.setPointerCapture(e.pointerId)
     emit('open', true) // closes any other open row
   }
@@ -73,29 +77,30 @@ function onMove(e: PointerEvent) {
   if (x > 0) x /= 4 // rubber band to the right
   drag.value = Math.max(-width.value, x)
 }
+/** Ends a swipe: rest open, rest closed, or delete when armed. */
+function settle(fromRelease = false) {
+  start = null
+  if (drag.value === null || removing.value) return
+  if (fromRelease && armed.value) { void remove(); return }
+  const open = drag.value < -ACTION / 2
+  drag.value = null
+  emit('open', open)
+}
 function onUp(e: PointerEvent) {
   if (!start || e.pointerId !== start.id) return
-  start = null
-  if (drag.value === null) return
-  swallowClick = true // the click that ends a swipe must not open a timer
-  if (armed.value) { void remove(); return }
-  const open = drag.value < -ACTION / 2
-  drag.value = null
-  emit('open', open)
+  settle(true)
 }
-function onCancel() {
-  start = null
-  if (drag.value === null) return
-  const open = drag.value < -ACTION / 2
-  drag.value = null
-  emit('open', open)
-}
+// The browser can take a touch away (a scroll, an overlapping gesture, iOS cancelling the capture)
+// without a pointerup: the swipe still has to come to rest instead of sticking halfway.
+function onCancel() { settle() }
+function onLostCapture() { if (start) settle() }
 function onClick() {
-  if (swallowClick) { swallowClick = false; return }
+  if (swiped) { swiped = false; return } // the click that ends a swipe opens nothing
   if (props.open) { emit('open', false); return } // a tap on an open row just closes it
   emit('select')
 }
 function onKey(e: KeyboardEvent) {
+  swiped = false
   if (props.swipe && (e.key === 'Delete' || e.key === 'Backspace')) { e.preventDefault(); void remove() }
 }
 
@@ -149,6 +154,7 @@ async function remove() {
       @pointermove="onMove"
       @pointerup="onUp"
       @pointercancel="onCancel"
+      @lostpointercapture="onLostCapture"
       @click="onClick"
       @keydown="onKey"
     >
