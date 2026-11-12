@@ -13,7 +13,7 @@ Open until the device spike reports: landscape rotation direction (cw/ccw), digi
 
 ## Direction contract
 
-THESIS: The digits are the interface: one fixed-cell white numeral line that never shifts, on pure black, with nothing else on screen while running. Refuses the category default of a dashboard of rings, progress bars and labels around a small clock.
+THESIS: The digits are the interface: one fixed-cell white numeral line that never jumps (it holds still, except for one glide to re-centre when the minus sign appears at zero), on pure black, with nothing else on screen while running. Refuses the category default of a dashboard of rings, progress bars and labels around a small clock.
 
 OWN-WORLD: #000 ground, #fff bold system-ui tabular digits in fixed-width cells measured from the device font. Red (#ff453a) means overtime and nothing else; amber (#ffd60a, black text) means "needs a tap"; a deep red is reserved for the End button. Glass only on floating controls (frosted in Safari, refraction in Chromium), Phosphor icons: fill for play and pause (solid mass reads at distance), bold for the X (Phosphor's filled X is a square badge, which reads as a window-close), no borders or cards; preset tiles are plain filled tap targets.
 

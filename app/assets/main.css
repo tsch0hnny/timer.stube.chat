@@ -37,10 +37,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: rgb(255 255 255 / 0.1);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
+  /* Rim light only: an outer drop shadow is invisible on #000 and only darkens digits underneath. */
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.32),
-    inset 0 -1px 0 rgb(255 255 255 / 0.06),
-    0 10px 28px rgb(0 0 0 / 0.55);
+    inset 0 -1px 0 rgb(255 255 255 / 0.06);
   transition: background-color 120ms ease-out, transform 120ms ease-out;
 }
 .glass:active { background: rgb(255 255 255 / 0.2); }
