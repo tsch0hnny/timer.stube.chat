@@ -1,0 +1,15 @@
+.git
+node_modules
+.nuxt
+.output
+.data
+.cache
+coverage
+test-results
+playwright-report
+blob-report
+spike-shots
+*.log
+.env
+.env.*
+.DS_Store

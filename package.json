@@ -7,14 +7,27 @@
     "test:watch": "vitest",
     "typecheck:core": "tsc --noEmit -p tsconfig.core.json",
     "check:spike": "node spike/tools/check-spike.mjs",
-    "check:headers": "deploy/check-headers.sh"
+    "check:headers": "deploy/check-headers.sh",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "test:e2e": "playwright test",
+    "e2e": "docker build -q --build-arg APP_VERSION=local-e2e -t timer-stube-chat:local-e2e . && (docker rm -f timer-e2e >/dev/null 2>&1; docker run -d --name timer-e2e -p 8090:80 timer-stube-chat:local-e2e) && playwright test"
   },
   "volta": {
     "node": "24.22.3"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",
+    "@types/node": "24.19.2",
     "typescript": "6.0.3",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "vue-tsc": "3.3.14"
+  },
+  "dependencies": {
+    "@phosphor-icons/vue": "2.2.1",
+    "@vite-pwa/nuxt": "1.1.1",
+    "nuxt": "4.6.4"
   }
 }

@@ -1,0 +1,24 @@
+# The gig build at https://timer.stube.chat. Never builds: it runs the exact image that passed the
+# device checklist on test-timer.stube.chat, by version tag.
+#   cd /opt/timer/src
+#   export APP_VERSION=<the version shown in the debug overlay on test-timer, e.g. v1.0.0>
+#   docker image inspect timer-stube-chat:$APP_VERSION >/dev/null && docker compose -f deploy/compose.prod.yml up -d
+name: timer-prod
+
+services:
+  web:
+    image: timer-stube-chat:${APP_VERSION:?set APP_VERSION to the version that passed the device checklist}
+    pull_policy: never
+    restart: unless-stopped
+    networks: [traefik_net]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: traefik_net
+      traefik.http.routers.timer-prod.rule: Host(`timer.stube.chat`)
+      traefik.http.routers.timer-prod.entrypoints: websecure
+      traefik.http.routers.timer-prod.tls.certresolver: letsencrypt
+      traefik.http.services.timer-prod.loadbalancer.server.port: "80"
+
+networks:
+  traefik_net:
+    external: true

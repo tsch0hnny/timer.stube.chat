@@ -59,3 +59,44 @@ jobs:
           name: spike-screenshots
           path: spike-shots/
           retention-days: 14
+
+  app:
+    name: App (typecheck + image + headers + E2E in WebKit/Chromium)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: package.json
+          cache: npm
+      - run: npm ci
+      - run: npx nuxt typecheck
+      - uses: docker/setup-buildx-action@v4
+      - name: Validate compose files
+        run: |
+          docker network create traefik_net
+          APP_VERSION=ci docker compose -f deploy/compose.test.yml config --quiet
+          APP_VERSION=ci docker compose -f deploy/compose.prod.yml config --quiet
+      - name: Build gig image (multi-stage, same Dockerfile as the VPS)
+        run: docker build --build-arg APP_VERSION=ci-${GITHUB_SHA::7} -t timer-stube-chat:ci --load .
+      - name: Run container and wait until it serves
+        run: |
+          docker run -d --name app -p 8090:80 timer-stube-chat:ci
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8090/manifest.webmanifest >/dev/null && exit 0
+            sleep 1
+          done
+          docker logs app; exit 1
+      - name: Cache and MIME headers (incl. a real hashed asset)
+        run: deploy/check-headers.sh http://127.0.0.1:8090
+      - run: npx playwright install --with-deps chromium webkit
+      - name: E2E (WebKit iPhone 13 Pro + Chromium Pixel 7)
+        run: npx playwright test
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
