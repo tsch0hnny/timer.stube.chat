@@ -166,6 +166,28 @@ test('the digits stay clear of the controls when they are shown, rotated and in 
   expect(await gap()).toBeGreaterThanOrEqual(0)
 })
 
+test('outside the home-screen app the capsule floats 0.75rem above the safe bottom, counted once', async ({ page }) => {
+  await openApp(page, { countUp: false })
+  const gap = await page.evaluate(() => {
+    const pr = document.querySelector('.presets')!
+    const safe = parseFloat(getComputedStyle(pr).paddingBottom) - 8 // padding = --safe-bottom + 0.5rem
+    return { safe, gap: Math.round(innerHeight - document.querySelector('[data-testid="direction"]')!.getBoundingClientRect().bottom - safe) }
+  })
+  expect(gap.gap, JSON.stringify(gap)).toBe(12)
+})
+
+test('the highlight is one element that slides between the halves', async ({ page }) => {
+  await openApp(page, { countUp: false })
+  const thumb = page.locator('[data-testid="direction"] .thumb')
+  const x = () => thumb.evaluate((el) => Math.round(el.getBoundingClientRect().left))
+  await expect.poll(() => thumb.evaluate((el) => getComputedStyle(el).transitionProperty)).toContain('transform')
+  const down = await x()
+  const half = await page.getByTestId('direction-up').evaluate((el) => Math.round(el.getBoundingClientRect().left))
+  await page.getByTestId('direction-up').click()
+  await expect.poll(x).toBe(half) // ends under the stopwatch
+  expect(half).toBeGreaterThan(down)
+})
+
 test('the capsule floats above the list, which scrolls clear of it to the very end', async ({ page }) => {
   await openApp(page, { countUp: false })
   const capsule = (await page.getByTestId('direction').boundingBox())!

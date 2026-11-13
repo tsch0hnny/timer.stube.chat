@@ -81,8 +81,13 @@ alongside other work).
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it
    keeps counting −00:01, −00:02 …?**
 5a. **Count up** (added 13 Nov: the band rehearses with a clock that counts up). Tap ✕ → End and
-   tap the **stopwatch** in the capsule at the bottom: **it turns grey-filled, the hourglass
-   dims?** Dial 0 hours, 0 min, 20 sec and tap **Set**.
+   tap the **count-up icon** (right half of the capsule at the bottom, the caret pointing up): **the
+   grey highlight slides over and the hand runs one lap?** Tap the **count-down icon** (left half):
+   **the arc drains, the hand shrinks to a dot, the ring refills and the hand grows back?** Tap it
+   twice quickly: **it restarts cleanly, no flicker?** Are all three icons (both mode icons and the
+   stage lock) **crisp?** Turn the phone to landscape and back (rotation lock off for this): **the
+   capsule is back just above the bottom edge, not higher?** Tap count up again, dial 0 hours, 0 min,
+   20 sec and tap **Set**.
    - **It opens at 00:00, paused, with the reset arrow greyed out?** Tap **Start**: **00:01, 00:02 …
      and at 00:20 red and one shake, then 00:21, 00:22 … in red, with no minus?**
    - Tap +1 min: **the digits jump a minute forward (about 01:25) and stay red?** Tap −1 min twice:
@@ -92,7 +97,7 @@ alongside other work).
    - Reset arrow → Reset: **00:00, paused?**
    - Optional, with a second phone: start the same length counting up on one and counting down on
      the other in the same second. **The two numbers always add up to the length?**
-   - Tap ✕ → End, tap the **hourglass** and then 15:00: **15:00, counting down as before?** Tap ✕.
+   - Tap ✕ → End, tap the **count-down icon** and then 15:00: **15:00, counting down as before?** Tap ✕.
    - Scroll to the end of the list: **the last preset, Restore and the version label all scroll
      clear of the capsule?**
 6. **Lock and unlock.** While it is running, lock with the side button, wait 30 s, then unlock.

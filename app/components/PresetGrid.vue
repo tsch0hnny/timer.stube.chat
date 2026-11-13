@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { PhArrowCounterClockwise, PhHourglassMedium, PhTimer } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise } from '@phosphor-icons/vue'
+import ModeIcon from '~/components/ModeIcon.vue'
 import { MINUTE, select as selectCore } from '#shared/timer/core'
 import { BUILT_IN_PRESETS, missingDefaults } from '#shared/storage/store'
 import { display as displayOf } from '#shared/timer/display'
@@ -16,6 +17,14 @@ const pwa = useNuxtApp().$pwa
 
 const startOnTap = computed(() => timer.prefs.value.startOnTap)
 const countUp = computed(() => timer.prefs.value.countUp)
+// Tapping an option selects it and plays its icon's animation (docs/timer-mode-icons.md), also when
+// it is already selected; a tap during an animation restarts it.
+const downIcon = ref<InstanceType<typeof ModeIcon> | null>(null)
+const upIcon = ref<InstanceType<typeof ModeIcon> | null>(null)
+function choose(up: boolean) {
+  timer.setCountUp(up)
+  ;(up ? upIcon : downIcon).value?.play()
+}
 const wheelMs = ref(timer.prefs.value.wheelMs) // opens on the last length set with it
 function setFromWheel() {
   timer.setWheel(wheelMs.value)
@@ -158,7 +167,9 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
            tab bar: centred under the list (on screen in portrait, beside the wheel in landscape). It
            sits last in the list column and sticks to the screen's bottom; at the very end of the
            list it comes to rest below it. Both icons show, the chosen one filled. -->
-      <div v-if="FEATURES.countUp" class="direction" role="radiogroup" aria-label="Timers count" data-testid="direction">
+      <div v-if="FEATURES.countUp" class="direction" :class="{ up: countUp }" role="radiogroup" aria-label="Timers count" data-testid="direction">
+        <!-- The highlight is one element that slides between the halves, as in an iOS segmented control. -->
+        <span class="thumb" aria-hidden="true" />
         <button
           type="button"
           role="radio"
@@ -166,9 +177,9 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
           aria-label="Count down"
           :class="{ on: !countUp }"
           data-testid="direction-down"
-          @click="timer.setCountUp(false)"
+          @click="choose(false)"
         >
-          <PhHourglassMedium :size="24" weight="bold" />
+          <ModeIcon ref="downIcon" kind="down" />
         </button>
         <button
           type="button"
@@ -177,9 +188,9 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
           aria-label="Count up"
           :class="{ on: countUp }"
           data-testid="direction-up"
-          @click="timer.setCountUp(true)"
+          @click="choose(true)"
         >
-          <PhTimer :size="24" weight="bold" />
+          <ModeIcon ref="upIcon" kind="up" />
         </button>
       </div>
     </div>
@@ -229,9 +240,14 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 }
 .buttons .btn-round { width: 5.25rem; height: 5.25rem; }
 
+/* As low as the painted page allows: 0.75rem above the safe bottom, or just 0.25rem above the page's
+   edge in the iOS home-screen app, where the unpainted strip below (--strip) already keeps it off the
+   home indicator. A sticky bottom is measured from inside the scroller's bottom padding, which holds
+   --safe-bottom + 0.5rem, so only the rest goes here (6dd9794 added --safe-bottom twice). */
 .direction {
+  --half: 3.25rem;
   position: sticky;
-  bottom: calc(var(--safe-bottom) + 0.75rem);
+  bottom: calc(max(0.25rem, calc(0.75rem - var(--strip, 0px))) - 0.5rem);
   width: fit-content;
   margin: 0.75rem auto 0;
   z-index: 3;
@@ -241,19 +257,31 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   border-radius: 999px;
   background: var(--menu); /* opaque, no shadow: floating things are plain menu-grey (DESIGN.md) */
 }
+.direction .thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: var(--half);
+  height: 2.75rem;
+  border-radius: 999px;
+  background: var(--selected);
+  transition: transform 300ms cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+.direction.up .thumb { transform: translateX(calc(var(--half) + 2px)); }
 .direction button {
+  position: relative; /* above the thumb */
   display: grid;
   place-items: center;
-  width: 3.25rem;
+  width: var(--half);
   height: 2.75rem;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--dim);
   touch-action: manipulation;
-  transition: background-color 160ms ease-out, color 160ms ease-out;
+  transition: color 200ms ease-out;
 }
-.direction button.on { background: var(--selected); color: #fff; }
+.direction button.on { color: #fff; }
 .direction button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
 
 /* Grouped cells, as the iOS timer's "When Timer Ends" row; a hairline between them, inset to the text. */
@@ -389,6 +417,6 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .knob, .track, .restore, .direction button { transition: none; }
+  .knob, .track, .restore, .direction button, .direction .thumb { transition: none; }
 }
 </style>

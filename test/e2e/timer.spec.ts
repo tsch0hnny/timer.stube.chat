@@ -231,6 +231,29 @@ test.describe('countdown on the real build, driven by a fake clock', () => {
       const v = (await page.getByTestId('version').boundingBox())!
       expect(v.y + v.height).toBeLessThanOrEqual(797)
     })
+
+    test('portrait → landscape → portrait leaves the strip, and the capsule just above the page edge, where they were', async ({ page }) => {
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'standalone', { configurable: true, value: true })
+        // iOS reports the screen in portrait whatever the orientation; Playwright's setViewportSize
+        // would resize the emulated screen along with the page (seen in the strip log), so pin it.
+        Object.defineProperty(screen, 'width', { configurable: true, get: () => 390 })
+        Object.defineProperty(screen, 'height', { configurable: true, get: () => 844 })
+      })
+      await page.goto('/')
+      await expect(page.getByTestId('presets')).toBeVisible()
+      const where = () => page.evaluate(() => ({
+        strip: document.documentElement.style.getPropertyValue('--strip'),
+        bottom: Math.round(document.querySelector('[data-testid="direction"]')!.getBoundingClientRect().bottom),
+      }))
+      const before = await where()
+      expect(before.strip).toBe('47px')
+      expect(797 - before.bottom).toBe(4) // 0.25rem above the page's edge: the strip below clears the home bar
+      await page.setViewportSize({ width: 844, height: 390 })
+      await expect.poll(async () => (await where()).strip).toBe('0px')
+      await page.setViewportSize({ width: 390, height: 797 })
+      await expect.poll(where).toEqual(before)
+    })
   })
 })
 
