@@ -83,8 +83,11 @@ alongside other work).
 5a. **Count up** (added 13 Nov: the band rehearses with a clock that counts up). Tap ✕ → End and
    tap the **count-up icon** (right half of the capsule at the bottom, the caret pointing up): **the
    grey highlight slides over and the hand runs one lap?** Tap the **count-down icon** (left half):
-   **the arc drains, the hand shrinks to a dot, the ring refills and the hand grows back?** Tap it
-   twice quickly: **it restarts cleanly, no flicker?** Are all three icons (both mode icons and the
+   **the bar and hand drain to 12, a short hold, the bar refills from 10:00 and kicks the hand back
+   to 10:00 just before it arrives, all counter-clockwise?** Does the kick **read as a kick, not a
+   jump?** (If it looks like a jump, say so: the spec suggests a 150 ms snap.) Tap it again while it
+   runs: **nothing changes, it plays to the end?** Tap back and forth quickly: **the highlight
+   follows the last tap at once, and each icon finishes its own animation?** Are all three icons (both mode icons and the
    stage lock) **crisp?** Turn the phone to landscape and back (rotation lock off for this): **the
    capsule is back just above the bottom edge, not higher?** Tap count up again, dial 0 hours, 0 min,
    20 sec and tap **Set**.

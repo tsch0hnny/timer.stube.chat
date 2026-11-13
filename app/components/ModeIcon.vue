@@ -19,7 +19,7 @@ onMounted(() => {
 onBeforeUnmount(() => icon?.cancel())
 
 defineExpose({
-  /** Selects nothing; plays this icon's animation from rest (a running one restarts). */
+  /** Plays this icon's animation; ignored while it is already playing. Fire and forget. */
   play: () => { void icon?.play() },
 })
 </script>

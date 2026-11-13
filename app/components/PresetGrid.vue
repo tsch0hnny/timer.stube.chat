@@ -17,8 +17,9 @@ const pwa = useNuxtApp().$pwa
 
 const startOnTap = computed(() => timer.prefs.value.startOnTap)
 const countUp = computed(() => timer.prefs.value.countUp)
-// Tapping an option selects it and plays its icon's animation (docs/timer-mode-icons.md), also when
-// it is already selected; a tap during an animation restarts it.
+// Tapping an option switches the mode at once and then plays its icon's animation on top
+// (docs/timer-mode-icons.md), also when it is already selected; a tap during that icon's animation
+// leaves it running, and the other icon finishes its own.
 const downIcon = ref<InstanceType<typeof ModeIcon> | null>(null)
 const upIcon = ref<InstanceType<typeof ModeIcon> | null>(null)
 function choose(up: boolean) {

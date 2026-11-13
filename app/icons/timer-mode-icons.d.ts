@@ -1,10 +1,14 @@
 /** Types for the owner's reference module (timer-mode-icons.js, docs/timer-mode-icons.md). */
 export interface TimerModeIcon {
   el: SVGSVGElement
-  /** Plays the tap animation from rest; a running one restarts. Resolves when it ends or is replaced. */
+  /**
+   * Plays the tap animation. While one is running it is ignored (no restart, no rewind) and the
+   * running promise comes back. Decoration only: never await it before changing the mode.
+   */
   play(): Promise<void>
-  /** Stops any animation and returns to rest. */
+  /** Stops any animation and restores the rest state (call on unmount). */
   cancel(): void
+  isPlaying(): boolean
 }
 export function createCountUpIcon(opts?: { size?: number }): TimerModeIcon
 export function createCountDownIcon(opts?: { size?: number }): TimerModeIcon

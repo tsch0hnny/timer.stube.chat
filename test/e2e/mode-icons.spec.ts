@@ -17,7 +17,7 @@ async function openApp(page: Page) {
   await expect(page.getByTestId('presets')).toBeVisible()
   await page.clock.pauseAt(START)
 }
-/** The icon as drawn: its path data, the hand's angle (clock degrees) and length, and its tip. */
+/** The icon as drawn: path data, the hand's angle (clock degrees) and length, its tip, its box. */
 function icon(page: Page, kind: 'up' | 'down') {
   return page.locator(`[data-testid="direction-${kind}"] svg`).evaluate((svg) => {
     const line = svg.querySelector('line')!
@@ -46,8 +46,16 @@ async function sample(page: Page, kind: 'up' | 'down', ms: number, step = 20) {
 }
 const near = (a: number[], b: number[]) => a.every((v, i) => Math.abs(v - b[i]!) < 0.01)
 const tipOf = (d: string) => (/L([\d.]+) ([\d.]+)/.exec(d)!.slice(1).map(Number))
+/** The signed turn from a to b, in (−180, 180]: negative is counter-clockwise (0° and 360° are one place). */
+const turn = (a: number, b: number) => { const d = (((b - a) % 360) + 540) % 360 - 180; return d === -180 ? 180 : d }
+/** Where the bright arc starts: the first point of its path, as a clock angle. */
+const startAngle = (d: string) => {
+  const m = /^M([\d.]+) ([\d.]+)/.exec(d)
+  if (!m) return null
+  return ((Math.atan2(Number(m[1]) - 12, 12 - Number(m[2])) * 180) / Math.PI + 360) % 360
+}
 
-test('at rest both icons match the reference SVGs, carets bottom left, count-down resting at 10:00', async ({ page }) => {
+test('at rest both icons match the reference SVGs (no crown, carets bottom left, count-down at 10:00)', async ({ page }) => {
   await openApp(page)
   const up = await icon(page, 'up')
   expect(up.paths).toEqual([UP_SVG[0], UP_SVG[2]]) // ring with its own gap, up caret
@@ -58,10 +66,9 @@ test('at rest both icons match the reference SVGs, carets bottom left, count-dow
   expect(near(down.tip, tipOf(DOWN_SVG[2]!)), `${down.tip}`).toBe(true) // hand at 10:00, on the bright arc's end
 })
 
-test('count up: one smooth clockwise lap in 0.9 s, ending exactly at rest', async ({ page }) => {
+test('count up: one smooth clockwise lap in about 0.9 s, ending exactly at rest', async ({ page }) => {
   await openApp(page)
   await page.getByTestId('direction-up').click()
-  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'true')
   const s = await sample(page, 'up', 1000)
   const lap = s.filter((x) => x.t < 900)
   for (let i = 1; i < lap.length; i++) expect(lap[i]!.angle, `t=${lap[i]!.t}`).toBeGreaterThanOrEqual(lap[i - 1]!.angle)
@@ -71,51 +78,76 @@ test('count up: one smooth clockwise lap in 0.9 s, ending exactly at rest', asyn
   expect(s.every((x) => Math.abs(x.len - HAND) < 0.01)).toBe(true) // nothing else moves
 })
 
-test('count down: drains counter-clockwise to 12, retracts to a dot, refills, regrows at 10:00', async ({ page }) => {
+test('count down: drain to 12, hold, refill counter-clockwise from 10:00, the hand kicked back just before the bar arrives', async ({ page }) => {
   await openApp(page)
   const rest = await icon(page, 'down')
-  await page.getByTestId('direction-up').click()
-  await page.getByTestId('direction-down').click()
-  await expect(page.getByTestId('direction-down')).toHaveAttribute('aria-checked', 'true')
-  const s = await sample(page, 'down', 2000)
-  const drain = s.filter((x) => x.t <= 1060)
-  for (let i = 1; i < drain.length; i++) expect(drain[i]!.angle, `t=${drain[i]!.t}`).toBeLessThanOrEqual(drain[i - 1]!.angle) // never clockwise
-  expect(drain.every((x) => Math.abs(x.len - HAND) < 0.01)).toBe(true) // the hand rides the arc's end
-  const atTwelve = s.find((x) => x.t === 1100)!
-  expect(atTwelve.angle).toBe(0)
-  expect(atTwelve.paths[1]).toBe('') // no bright arc left: the ring is fully faded
-  const shrink = s.filter((x) => x.t > 1100 && x.t <= 1300)
-  for (let i = 1; i < shrink.length; i++) expect(shrink[i]!.len).toBeLessThanOrEqual(shrink[i - 1]!.len)
-  expect(Math.min(...s.map((x) => x.len))).toBeCloseTo(0.01, 4) // a dot (the module's 0.01 minimum), never gone
-  expect(s.every((x) => x.handOpacity === null)).toBe(true) // the hand never fades
-  const refill = s.filter((x) => x.t > 1400 && x.t <= 1860)
-  expect(refill.every((x) => x.angle === 300)).toBe(true) // waits at 10:00 while it regrows
-  for (let i = 1; i < refill.length; i++) expect(refill[i]!.len).toBeGreaterThanOrEqual(refill[i - 1]!.len)
-  const end = s.at(-1)!
+  await page.getByTestId('direction-down').click() // already selected: replays
+  const s = await sample(page, 'down', 1800)
+  // Nothing ever turns clockwise; the hand never shrinks or fades.
+  const all = [{ t: 0, ...rest }, ...s]
+  for (let i = 1; i < all.length; i++) expect(turn(all[i - 1]!.angle, all[i]!.angle), `t=${all[i]!.t}`).toBeLessThanOrEqual(0)
+  expect(s.every((x) => Math.abs(x.len - HAND) < 0.01 && x.handOpacity === null)).toBe(true)
+  // 1. Drain (1080 ms): the hand rides the bright arc's end down to 12.
+  expect(Math.abs(s.find((x) => x.t === 540)!.angle - 150)).toBeLessThan(10)
+  // 2. Hold (100 ms): ring fully faded, hand at 12.
+  const hold = s.find((x) => x.t === 1120)!
+  expect(hold.angle % 360).toBe(0)
+  expect(hold.paths[1]).toBe('')
+  // 3. Refill (520 ms): the bright arc keeps its 10:00 end and grows counter-clockwise towards 12.
+  const refill = s.filter((x) => x.t > 1200 && x.t < 1680 && x.paths[1])
+  for (const x of refill) expect(x.paths[1]!.endsWith('5.07 8'), `t=${x.t} ${x.paths[1]}`).toBe(true) // ends at 10:00
+  const starts = refill.map((x) => startAngle(x.paths[1]!)!)
+  for (let i = 1; i < starts.length; i++) expect(starts[i]!, `t=${refill[i]!.t}`).toBeLessThanOrEqual(starts[i - 1]! + 0.5)
+  // 3a. The kick: the hand waits at 12 until the bar is 80 % back (about 356 ms in), then snaps to 10:00 by about 476 ms.
+  expect(s.find((x) => x.t === 1180 + 340)!.angle % 360).toBe(0)
+  expect(s.find((x) => x.t === 1180 + 500)!.angle).toBe(300)
+  // About 1.7 s in all, ending exactly at rest.
+  const end = s.find((x) => x.t === 1720)!
   expect(end.paths).toEqual(rest.paths)
   expect(near(end.tip, rest.tip)).toBe(true)
 })
 
-test('rapid repeated taps restart from rest; two sequences never stack', async ({ page }) => {
+test('the mode changes the instant you tap, not after the animation', async ({ page }) => {
+  await openApp(page)
+  await page.getByTestId('direction-up').click()
+  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'true') // no fake time has passed
+  await page.getByTestId('direction-down').click()
+  await expect(page.getByTestId('direction-down')).toHaveAttribute('aria-checked', 'true')
+  await page.getByTestId('preset-15').click()
+  await expect(page.getByTestId('digits')).toHaveAttribute('aria-label', '15:00 left')
+})
+
+test('a tap during an animation does nothing to it: no restart, no jump', async ({ page }) => {
   await openApp(page)
   await page.getByTestId('direction-up').click()
   await page.clock.runFor(300)
+  const before = (await icon(page, 'up')).angle
+  expect(before).toBeGreaterThan(45)
   await page.getByTestId('direction-up').click()
-  expect((await icon(page, 'up')).angle).toBe(45) // back at rest at once
-  const s = await sample(page, 'up', 1000)
-  expect(Math.abs(s.find((x) => x.t === 460)!.angle - 225)).toBeLessThan(12) // timed from the second tap only
+  expect((await icon(page, 'up')).angle).toBe(before) // not back to rest
+  const s = await sample(page, 'up', 700)
+  expect(Math.abs(s.find((x) => x.t === 160)!.angle - 225)).toBeLessThan(12) // still timed from the first tap
   expect(s.at(-1)!.angle).toBe(45)
+  await page.getByTestId('direction-up').click() // after it ended, a tap plays again
+  await page.clock.runFor(460)
+  expect(Math.abs((await icon(page, 'up')).angle - 225)).toBeLessThan(12)
+})
 
-  const rest = await icon(page, 'down')
-  await page.getByTestId('direction-down').click()
-  await page.clock.runFor(700)
-  await page.getByTestId('direction-down').click()
-  const again = await icon(page, 'down')
-  expect(again.paths).toEqual(rest.paths)
-  expect(again.angle).toBe(300)
-  const d = await sample(page, 'down', 2000)
-  expect(d.find((x) => x.t === 1100)!.angle).toBe(0) // one sequence, from the second tap
-  expect(d.at(-1)!.paths).toEqual(rest.paths)
+test('rapid back-and-forth: each icon finishes its own animation and the mode matches the last tap', async ({ page }) => {
+  await openApp(page)
+  const rest = { up: await icon(page, 'up'), down: await icon(page, 'down') }
+  for (const kind of ['up', 'down', 'up', 'down', 'up'] as const) {
+    await page.getByTestId(`direction-${kind}`).click()
+    await expect(page.getByTestId(`direction-${kind}`)).toHaveAttribute('aria-checked', 'true')
+    await page.clock.runFor(60)
+  }
+  expect((await icon(page, 'up')).angle).not.toBe(45) // both are moving for a moment
+  expect((await icon(page, 'down')).angle).not.toBe(300)
+  await page.clock.runFor(2000)
+  expect((await icon(page, 'up')).angle).toBe(45)
+  expect((await icon(page, 'down')).paths).toEqual(rest.down.paths)
+  expect((await icon(page, 'down')).angle).toBe(300)
+  await expect(page.getByTestId('direction-up')).toHaveAttribute('aria-checked', 'true')
 })
 
 test('reduced motion: the selection changes, nothing animates', async ({ page }) => {
@@ -137,7 +169,7 @@ test('the icons take the button\'s colour, selected and not, and keep their box 
   expect(await color('up')).toBe('rgb(142, 142, 147)') // --dim
   const box = (await icon(page, 'down')).box
   await page.getByTestId('direction-down').click()
-  const s = await sample(page, 'down', 1900, 100)
+  const s = await sample(page, 'down', 1800, 100)
   expect(s.every((x) => x.box[0] === box[0] && x.box[1] === box[1])).toBe(true)
   expect(box).toEqual([24, 24])
 })
