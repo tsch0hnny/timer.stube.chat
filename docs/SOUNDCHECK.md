@@ -17,7 +17,7 @@
    - **storage** ok.
 
    Close the overlay.
-4. **Start a timer (30 s).** Check that the **stopwatch** is chosen in the capsule at the bottom left
+4. **Start a timer (30 s).** Check that the **stopwatch** is chosen in the capsule at the bottom
    (the band reads the time elapsed) and **Start right away is off**. Tap the set length in the
    Presets list (or dial it on the wheel and tap **Set**). The paused landscape view opens at 00:00. If the
    amber "Tap once to keep the screen on" pill shows, tap the screen until it disappears (iOS

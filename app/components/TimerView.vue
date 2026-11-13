@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { PhArrowCounterClockwise, PhLockSimple, PhLockSimpleOpen, PhX } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise, PhX } from '@phosphor-icons/vue'
 import { FEATURES, LANDSCAPE_ROTATION } from '~/features'
 import { useStageTimer } from '~/composables/useStageTimer'
 import { useDebugOverlay } from '~/composables/useSecretTaps'
@@ -214,7 +214,7 @@ const display = timer.display
 
         <Transition name="fade">
           <p v-if="hint && !controlsVisible" class="hint capsule" data-testid="hint">
-            <PhLockSimple v-if="locked" :size="20" weight="bold" aria-hidden="true" />{{ hintText }}
+            <LockGlyph v-if="locked" :size="22" />{{ hintText }}
           </p>
         </Transition>
 
@@ -293,7 +293,7 @@ const display = timer.display
               data-testid="lock"
               @click="onLock"
             >
-              <PhLockSimpleOpen :size="22" weight="bold" />
+              <LockGlyph :size="24" />
             </button>
 
             <button type="button" class="version" data-control data-testid="version" @click="debug.tap">{{ version }}</button>

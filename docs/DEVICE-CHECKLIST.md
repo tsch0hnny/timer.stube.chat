@@ -81,7 +81,7 @@ alongside other work).
    **red, one shake, the digits glide sideways once (no jump) while the minus sign fades in, and it
    keeps counting −00:01, −00:02 …?**
 5a. **Count up** (added 13 Nov: the band rehearses with a clock that counts up). Tap ✕ → End and
-   tap the **stopwatch** in the capsule at the bottom left: **it turns grey-filled, the hourglass
+   tap the **stopwatch** in the capsule at the bottom: **it turns grey-filled, the hourglass
    dims?** Dial 0 hours, 0 min, 20 sec and tap **Set**.
    - **It opens at 00:00, paused, with the reset arrow greyed out?** Tap **Start**: **00:01, 00:02 …
      and at 00:20 red and one shake, then 00:21, 00:22 … in red, with no minus?**

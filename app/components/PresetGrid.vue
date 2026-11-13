@@ -73,7 +73,7 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 </script>
 
 <template>
-  <section class="presets" :class="{ 'with-direction': FEATURES.countUp }" data-testid="presets" @pointerdown.capture="closeOnOutside" @scroll.passive="openId = null">
+  <section class="presets" data-testid="presets" @pointerdown.capture="closeOnOutside" @scroll.passive="openId = null">
     <StatusPills :wake-lock-matters="false" />
 
     <div class="setter">
@@ -123,33 +123,6 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
       </div>
     </div>
 
-    <!-- Count down or up: a mode, so it floats where it is always in sight (iOS 26 puts its tab bar
-         there). Both icons show, the chosen one filled, so the state reads at a glance. -->
-    <div v-if="FEATURES.countUp" class="direction" role="radiogroup" aria-label="Timers count" data-testid="direction">
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="!countUp"
-        aria-label="Count down"
-        :class="{ on: !countUp }"
-        data-testid="direction-down"
-        @click="timer.setCountUp(false)"
-      >
-        <PhHourglassMedium :size="24" weight="bold" />
-      </button>
-      <button
-        type="button"
-        role="radio"
-        :aria-checked="countUp"
-        aria-label="Count up"
-        :class="{ on: countUp }"
-        data-testid="direction-up"
-        @click="timer.setCountUp(true)"
-      >
-        <PhTimer :size="24" weight="bold" />
-      </button>
-    </div>
-
     <div class="listcol">
       <h2 class="heading">Presets</h2>
       <ul class="list" role="list">
@@ -181,6 +154,34 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
         </button>
         <button type="button" class="version" data-testid="version" @click="debug.tap">{{ version }}</button>
       </footer>
+      <!-- Count down or up: a mode, so it floats at the bottom, always in sight, as iOS 26 floats its
+           tab bar: centred under the list (on screen in portrait, beside the wheel in landscape). It
+           sits last in the list column and sticks to the screen's bottom; at the very end of the
+           list it comes to rest below it. Both icons show, the chosen one filled. -->
+      <div v-if="FEATURES.countUp" class="direction" role="radiogroup" aria-label="Timers count" data-testid="direction">
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="!countUp"
+          aria-label="Count down"
+          :class="{ on: !countUp }"
+          data-testid="direction-down"
+          @click="timer.setCountUp(false)"
+        >
+          <PhHourglassMedium :size="24" weight="bold" />
+        </button>
+        <button
+          type="button"
+          role="radio"
+          :aria-checked="countUp"
+          aria-label="Count up"
+          :class="{ on: countUp }"
+          data-testid="direction-up"
+          @click="timer.setCountUp(true)"
+        >
+          <PhTimer :size="24" weight="bold" />
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -228,12 +229,11 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
 }
 .buttons .btn-round { width: 5.25rem; height: 5.25rem; }
 
-/* The end of the list scrolls clear of the floating direction capsule. */
-.presets.with-direction { padding-bottom: calc(var(--safe-bottom) + 0.75rem + 3.25rem + 0.75rem); }
 .direction {
-  position: fixed;
-  left: calc(env(safe-area-inset-left) + var(--gutter));
+  position: sticky;
   bottom: calc(var(--safe-bottom) + 0.75rem);
+  width: fit-content;
+  margin: 0.75rem auto 0;
   z-index: 3;
   display: flex;
   gap: 2px;
@@ -382,10 +382,10 @@ const action = computed(() => (startOnTap.value ? 'Start' : 'Set'))
   .heading { margin-top: 0.5rem; }
   .buttons { margin: 0.75rem 0.25rem 1rem; }
 }
-/* Where the wheel column fits the height above the direction capsule, it stays put and only the list
-   scrolls. It is 334 px tall up to 500 px (5-row wheel) and 402 px above, from 24 px down; the
-   capsule takes 64 px plus up to 21 px of home indicator. Phones in landscape scroll it with the list. */
-@media (orientation: landscape) and (min-height: 520px) {
+/* Where the wheel column fits the height, it stays put and only the list scrolls: 334 px tall up to
+   500 px (5-row wheel) from 24 px down, so from 360 px; 402 px above 500. The direction capsule
+   lives in the list column, so it never covers this one. */
+@media (orientation: landscape) and (min-height: 360px) {
   .setter { position: sticky; top: 0.75rem; }
 }
 @media (prefers-reduced-motion: reduce) {

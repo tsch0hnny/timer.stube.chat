@@ -360,7 +360,7 @@ Apple's round timer button, tactile and plain.
 - **Cell:** at least 3.25rem tall, 0.5rem 1rem padding, in a cell-grey group with 0.75rem corners: "Start right away", as the iOS timer's "When Timer Ends" row. More cells in the group take separator-grey hairlines between them, inset to the text.
 
 ### Direction Capsule (presets screen)
-- Count down or up is a mode, so it floats at the bottom left above the list (fixed, 0.75rem above the safe bottom, on the gutter), as iOS 26 floats its tab bar. An opaque menu-grey capsule, 4px padding, two 52×44px halves: a bold hourglass (count down) and a bold stopwatch (count up). The chosen half is selected-grey with a white icon, the other a dim icon on the capsule; 160ms colour change. A radiogroup ("Count down", "Count up"). The list ends with room for it, so the last row, Restore and the version label scroll clear.
+- Count down or up is a mode, so it floats at the bottom, as iOS 26 floats its tab bar: last in the list column and sticky 0.75rem above the safe bottom, centred under the list (on screen in portrait, under the list column in landscape, never over the wheel column, which stays pinned). At the very end of the list it comes to rest below the version label. An opaque menu-grey capsule, 4px padding, two 52×44px halves: a bold hourglass (count down) and a bold stopwatch (count up). The chosen half is selected-grey with a white icon, the other a dim icon on the capsule; 160ms colour change. A radiogroup ("Count down", "Count up"). Sitting in the flow, it leaves the last row, Restore and the version label clear by itself.
 - **Switch:** iOS proportions (51×31px, 27px white knob). Off is quiet-fill, on is start-green (as every iOS switch). Knob slides over 220ms.
 
 ### Preset List (Recents format)
@@ -373,10 +373,10 @@ Apple's round timer button, tactile and plain.
 - Three scroll-snapping columns (hours, min, sec), numbers ending just left of each column's centre with the unit beside them; a quiet-fill band (8px corners) across all three at the centre row; the drum fades to transparent at top and bottom and, where supported, curves with a scroll-linked rotateX. Reduced motion drops the curve. A focused column underlines its unit.
 
 ### Capsules and Pills
-- **Hint / exit and reset confirms:** opaque menu-grey capsules, white bold text. Locked, the hint reads "Hold to unlock" after a bold closed padlock.
+- **Hint / exit and reset confirms:** opaque menu-grey capsules, white bold text. Locked, the hint reads "Hold to unlock" after the same padlock.
 
 ### Stage Lock
-- An open padlock (bold, 22px) in a 3.25rem button-grey circle at the stage's bottom left, level with the middle of the play row and moved in from the notch like the ✕. Tapping it hides the controls and shows the locked hint; from then a tap only shows that hint, and a long press anywhere brings the controls back unlocked.
+- A closed padlock drawn for the app after the owner's reference (LockGlyph: a filled, softly rounded body and a tall round shackle, no keyhole, like Apple's lock.fill; Phosphor's simple padlock read as a shopping bag), 24px, in a 3.25rem button-grey circle at the stage's bottom left, level with the middle of the play row and moved in from the notch like the ✕. Tapping it hides the controls and shows the locked hint; from then a tap only shows that hint, and a long press anywhere brings the controls back unlocked.
 - **Status pill:** caution-amber, black 800-weight text, centred at the top of the stage.
 
 ### Stage Digits (signature)
